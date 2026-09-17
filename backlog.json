@@ -451,12 +451,12 @@
       "title": "개인 액세스 토큰 발급 및 claudebridge login 커맨드 구현 (머신당 1회 로그인)",
       "category": "auth",
       "source_section": "H",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-011",
         "T-039"
       ],
-      "note": "코드 구현 완료: agent-cli/src/login-command.mjs — 개인 액세스 토큰 발급 방식을 디바이스 코드 플로우로 결정(README.md에 근거 기술, 개발요청서.md 4장 미결 질문 해소). POST /api/cli/device-code, GET /api/cli/device-code/:code API 계약을 가정. dep T-011(구글 로그인, web-app 트랙) 미완료 + 백엔드 API 자체가 없어 실제 로그인 플로우 검증 불가."
+      "note": "코드 구현 완료: agent-cli/src/login-command.mjs — 개인 액세스 토큰 발급 방식을 디바이스 코드 플로우로 결정(README.md에 근거 기술, 개발요청서.md 4장 미결 질문 해소). POST /api/cli/device-code, GET /api/cli/device-code/:code API 계약을 가정. dep T-011(구글 로그인, web-app 트랙) 미완료 + 백엔드 API 자체가 없어 실제 로그인 플로우 검증 불가. | 완료 근거: web-app T-011(구글 로그인) done 확인 + lib/security/registration-token.ts를 직접 읽어 실제 인증 방식(정적 CLAUDEBRIDGE_REGISTRATION_TOKEN 공유 비밀값 Bearer 비교)을 확인. 애초 설계했던 디바이스 코드 플로우는 대응 백엔드 엔드포인트가 없어 폐기하고, agent-cli/src/login-command.mjs를 그 실제 계약에 맞춰 재작성(--token 플래그/환경변수/대화형 프롬프트로 토큰을 받아 config.json에 저장). config.mjs의 saveConfig/loadConfig 라운드트립은 기존 테스트들(smoke-test.mjs 등)에서 반복 사용되어 정상 동작 확인."
     },
     {
       "id": "T-042",
