@@ -1,12 +1,12 @@
 # 진행 상황
 
-_이 파일은 `backlog.json`으로부터 자동 생성됩니다. 직접 편집하지 마세요. (생성: 2026-09-17T03:33:32.582Z)_
+_이 파일은 `backlog.json`으로부터 자동 생성됩니다. 직접 편집하지 마세요. (생성: 2026-09-17T04:19:34.151Z)_
 
 프로젝트: **ClaudeBridge**
 
 ## 요약
 
-전체 47개 작업 — 할 일 44, needs_info 3
+전체 47개 작업 — 완료 17, needs_info 3, 할 일 27
 
 ## 카테고리별 상세
 
@@ -14,30 +14,30 @@ _이 파일은 `backlog.json`으로부터 자동 생성됩니다. 직접 편집�
 
 | ID | 상태 | 제목 |
 |---|---|---|
-| T-001 | 할 일 | Next.js 프로젝트 스캐폴드 생성 (App Router, TypeScript) |
+| T-001 | 완료 | Next.js 프로젝트 스캐폴드 생성 (App Router, TypeScript) |
 | T-002 | needs_info | Vercel 프로젝트 생성 및 GitHub 연동 |
 | T-003 | needs_info | Supabase 프로젝트 생성 및 연결 키 발급 |
-| T-004 | 할 일 | 환경변수 구조 설계 (서비스 롤 키는 서버 전용으로 분리) |
+| T-004 | 완료 | 환경변수 구조 설계 (서비스 롤 키는 서버 전용으로 분리) |
 | T-039 | 할 일 | 로컬 에이전트를 전역 설치 CLI 패키지로 구성 (bin 엔트리 + npm 전역 배포 구조) |
 
 ### backend
 
 | ID | 상태 | 제목 |
 |---|---|---|
-| T-005 | 할 일 | Supabase projects 테이블 스키마 작성 (project_id 기반 확장 고려) |
-| T-006 | 할 일 | Supabase blocked_events 테이블 스키마 작성 (질문/권한 대기 이벤트) |
-| T-007 | 할 일 | Supabase responses 테이블 스키마 작성 (사용자가 고른 응답 기록) |
-| T-008 | 할 일 | Supabase usage_logs 테이블 스키마 작성 (토큰 사용량) |
-| T-009 | 할 일 | 질문/응답/사용량 30일 후 자동 삭제 정책(TTL) 설정 |
-| T-040 | 할 일 | 프로젝트 등록 API 구현 (POST /api/projects, project_id 발급 — 콘솔 수동 작업 제거) |
+| T-005 | 완료 | Supabase projects 테이블 스키마 작성 (project_id 기반 확장 고려) |
+| T-006 | 완료 | Supabase blocked_events 테이블 스키마 작성 (질문/권한 대기 이벤트) |
+| T-007 | 완료 | Supabase responses 테이블 스키마 작성 (사용자가 고른 응답 기록) |
+| T-008 | 완료 | Supabase usage_logs 테이블 스키마 작성 (토큰 사용량) |
+| T-009 | 완료 | 질문/응답/사용량 30일 후 자동 삭제 정책(TTL) 설정 |
+| T-040 | 완료 | 프로젝트 등록 API 구현 (POST /api/projects, project_id 발급 — 콘솔 수동 작업 제거) |
 
 ### auth
 
 | ID | 상태 | 제목 |
 |---|---|---|
 | T-010 | needs_info | 구글 OAuth 앱 등록 및 클라이언트 ID/시크릿 발급 |
-| T-011 | 할 일 | Next.js에 구글 로그인 연동 |
-| T-012 | 할 일 | 이메일 화이트리스트 검증 미들웨어 작성 (jhjeong710@gmail.com만 허용) |
+| T-011 | 완료 | Next.js에 구글 로그인 연동 |
+| T-012 | 완료 | 이메일 화이트리스트 검증 미들웨어 작성 (jhjeong710@gmail.com만 허용) |
 | T-041 | 할 일 | 개인 액세스 토큰 발급 및 claudebridge login 커맨드 구현 (머신당 1회 로그인) |
 
 ### agent
@@ -72,12 +72,12 @@ _이 파일은 `backlog.json`으로부터 자동 생성됩니다. 직접 편집�
 
 | ID | 상태 | 제목 |
 |---|---|---|
-| T-023 | 할 일 | 대시보드 로그인 페이지 UI |
-| T-024 | 할 일 | 백로그 상태 요약 뷰 (todo/doing/done 카운트) |
-| T-025 | 할 일 | 대기 중인 질문/권한 목록 뷰 |
-| T-026 | 할 일 | AskUserQuestion 응답 선택 UI (옵션 버튼 클릭 시 responses 기록) |
-| T-027 | 할 일 | Permission 승인/거부 버튼 UI |
-| T-028 | 할 일 | 토큰 사용량 표시 뷰 |
+| T-023 | 완료 | 대시보드 로그인 페이지 UI |
+| T-024 | 완료 | 백로그 상태 요약 뷰 (todo/doing/done 카운트) |
+| T-025 | 완료 | 대기 중인 질문/권한 목록 뷰 |
+| T-026 | 완료 | AskUserQuestion 응답 선택 UI (옵션 버튼 클릭 시 responses 기록) |
+| T-027 | 완료 | Permission 승인/거부 버튼 UI |
+| T-028 | 완료 | 토큰 사용량 표시 뷰 |
 
 ### usage
 
@@ -91,7 +91,7 @@ _이 파일은 `backlog.json`으로부터 자동 생성됩니다. 직접 편집�
 
 | ID | 상태 | 제목 |
 |---|---|---|
-| T-032 | 할 일 | 웹 푸시 구독 등록 (Service Worker + VAPID 키 설정) |
+| T-032 | 완료 | 웹 푸시 구독 등록 (Service Worker + VAPID 키 설정) |
 | T-033 | 할 일 | 막힌 이벤트 발생 시 웹 푸시 발송 로직 작성 |
 
 ### qa
