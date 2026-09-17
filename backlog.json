@@ -163,13 +163,14 @@
       "title": "감지된 이벤트를 Supabase blocked_events에 기록하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-006",
         "T-014",
         "T-015",
         "T-016"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/blocked-events.mjs(recordBlockedEvent/markBlockedEventAnswered, schema-contract.mjs 가정 스키마 사용). deps 중 T-006(blocked_events 테이블 스키마, web-app 트랙)이 미완료 + T-014가 blocked 상태라 doing/done 전환 불가. web-app 트랙 스키마 확정 후 실제 테이블로 insert 검증 필요."
     },
     {
       "id": "T-018",
