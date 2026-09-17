@@ -463,13 +463,14 @@
       "title": "claudebridge init 커맨드 구현 (등록 API 호출+settings.json 위임형 훅 삽입+tmux 세션 생성+Claude Code 실행 자동화)",
       "category": "agent",
       "source_section": "H",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-040",
         "T-041",
         "T-019",
         "T-046"
-      ]
+      ],
+      "note": "완료 근거: web-app T-040(app/api/projects/route.ts) 파일을 직접 읽어 실제 계약(Bearer CLAUDEBRIDGE_REGISTRATION_TOKEN, body {name, client_ref?}, 응답 {project_id, name, created_at, existing})을 확인 후 agent-cli/src/init-command.mjs를 그대로 맞춰 재작성(client_ref=projectDir sha256 해시). 로컬 목 서버로 registerProjectWithBackend를 실제 실행해 (1)신규 등록 시 clb_+20자 project_id/existing:false, (2)같은 client_ref 재호출 시 동일 project_id/existing:true(멱등, init 재실행 안전), (3)잘못된 토큰이면 401 실패를 모두 실측 확인(2026-09-17). 안전 게이트 0/0-1단계→등록→훅삽입→tmux 세션까지의 순서는 코드 검토로 확인했으며, 마지막 tmux 세션 생성 단계만 이 머신에 tmux가 없어 라이브 미검증(다른 태스크들과 동일한 제약, README 명시)."
     },
     {
       "id": "T-043",
