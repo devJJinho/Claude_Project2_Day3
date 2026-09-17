@@ -554,8 +554,8 @@
       "title": "백로그 테이블 ID/상태/카테고리 칼럼 항상 한 줄 표시",
       "category": "dashboard",
       "source_section": "K",
-      "status": "doing",
-      "note": "사용자 요청(2026-09-18): T-049에서 가로 스크롤을 추가했지만 여전히 ID/상태/카테고리 칼럼이 두 줄로 잘리는 경우가 있었음 -> .col-nowrap(white-space:nowrap)을 이 세 칼럼에만 적용하고, .table-scroll의 overflow-x:auto를 모바일 미디어쿼리 밖으로 빼서 화면 폭과 무관하게 항상 가로 스크롤이 가능하게 함(제목 칼럼은 긴 텍스트라 계속 줄바꿈 허용)."
+      "status": "done",
+      "note": "사용자 요청(2026-09-18): T-049에서 가로 스크롤을 추가했지만 여전히 ID/상태/카테고리 칼럼이 두 줄로 잘리는 경우가 있었음 -> .col-nowrap(white-space:nowrap)을 이 세 칼럼에만 적용하고, .table-scroll의 overflow-x:auto를 모바일 미디어쿼리 밖으로 빼서 화면 폭과 무관하게 항상 가로 스크롤이 가능하게 함(제목 칼럼은 긴 텍스트라 계속 줄바꿈 허용). | 완료 근거: 프로덕션에 배포된 col-nowrap 클래스 확인(CSS 번들에 포함) 후, 인증된 세션 위 390px iframe으로 백로그 페이지를 직접 렌더링해 확인: ID/상태/카테고리 세 칼럼이 모두 한 줄로 유지되고(줄바꿈 없음), 제목 칼럼만 컨테이너 폭에서 잘려 가로 스크롤 대상이 됨(스크린샷 확인). npm run verify + next build 통과."
     }
   ]
 }
