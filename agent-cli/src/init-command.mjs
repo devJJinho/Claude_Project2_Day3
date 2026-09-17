@@ -3,13 +3,18 @@
 // -> 1 등록 API 호출 -> 2 settings.json 위임형 훅 삽입 -> 3 tmux 세션 생성+Claude Code 실행
 // -> 4 완료 메시지.
 //
-// 가정하는 백엔드 API 계약(다른 트랙 구현 필요):
-//   POST {apiBaseUrl}/api/projects  (Authorization: Bearer <personal access token>)
-//     body: { name: string, localPath: string }
-//     -> { project_id: string, dashboard_url: string }
-//   이미 같은 localPath로 등록된 적이 있으면 기존 project_id를 그대로 반환(멱등)한다고 가정 —
-//   init을 여러 번 실행해도 프로젝트가 중복 생성되지 않아야 하기 때문.
+// 백엔드 API 계약(web-app 트랙 T-040, app/api/projects/route.ts를 직접 읽어 확인 — 더 이상
+// 가정이 아니라 실제 구현과 대조 완료, 2026-09-17):
+//   POST {apiBaseUrl}/api/projects  (Authorization: Bearer <CLAUDEBRIDGE_REGISTRATION_TOKEN>)
+//     body: { name: string(1~100자), client_ref?: string(1~200자) }
+//     -> 201(신규) | 200(client_ref로 기존 매칭): { project_id, name, created_at, existing }
+//     -> 400 { error:"invalid_request", message } | 401 { error:"unauthorized" } | 500 { error:"internal_error", message }
+//   client_ref로 "같은 디렉터리에서 init 재실행 시 중복 등록 방지"를 서버가 보장하므로,
+//   여기서는 projectDir 절대경로의 sha256 해시(앞 40자)를 client_ref로 보낸다 — 응답에
+//   dashboard_url은 없다(단일 프로젝트 1차 범위라 대시보드는 프로젝트별 URL을 따로 안 둠,
+//   config.json의 dashboardUrl을 그대로 안내).
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { checkStage1GuardActive } from "./safety-gate-stage1.mjs";
 import { ensureStage1GuardOrInstall } from "./safety-gate-install.mjs";
 import { checkStage2WebAccess } from "./safety-gate-stage2.mjs";
@@ -18,14 +23,19 @@ import { buildHooksToInstall } from "./hook-delegate-template.mjs";
 import { ensureSession, startClaudeCode, tmuxSessionName } from "./tmux-session.mjs";
 import { loadConfig, registerProjectInConfig } from "./config.mjs";
 
-async function registerProjectWithBackend(apiBaseUrl, token, name, localPath) {
+export function computeClientRef(projectDir) {
+  return createHash("sha256").update(projectDir).digest("hex").slice(0, 40);
+}
+
+export async function registerProjectWithBackend(apiBaseUrl, token, name, clientRef) {
   const res = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/api/projects`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ name, localPath }),
+    body: JSON.stringify({ name, client_ref: clientRef }),
   });
-  if (!res.ok) throw new Error(`프로젝트 등록 API 실패: HTTP ${res.status} ${await res.text()}`);
-  return res.json();
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`프로젝트 등록 API 실패: HTTP ${res.status} ${JSON.stringify(body)}`);
+  return body; // { project_id, name, created_at, existing }
 }
 
 /**
@@ -34,7 +44,7 @@ async function registerProjectWithBackend(apiBaseUrl, token, name, localPath) {
 export async function runInitCommand(opts = {}) {
   const projectDir = path.resolve(opts.projectDir || process.cwd());
   const cfg = loadConfig();
-  if (!cfg.accessToken) throw new Error("로그인이 필요합니다 — 먼저 'claudebridge login'을 실행하세요.");
+  if (!cfg.registrationToken) throw new Error("로그인이 필요합니다 — 먼저 'claudebridge login'을 실행하세요.");
   if (!cfg.apiBaseUrl) throw new Error("백엔드 API 주소가 설정되지 않았습니다 — 'claudebridge login'을 다시 실행하세요.");
 
   // --- 0단계: 안전 게이트 1단계 ---
@@ -56,15 +66,16 @@ export async function runInitCommand(opts = {}) {
   }
   console.log("[2단계 통과] tmux/Supabase 연결 확인 완료");
 
-  // --- 1단계: 프로젝트 등록 ---
+  // --- 1단계: 프로젝트 등록(client_ref로 재실행 멱등) ---
   const name = path.basename(projectDir);
-  const { project_id: projectId, dashboard_url: dashboardUrl } = await registerProjectWithBackend(
+  const clientRef = computeClientRef(projectDir);
+  const { project_id: projectId, existing } = await registerProjectWithBackend(
     cfg.apiBaseUrl,
-    cfg.accessToken,
+    cfg.registrationToken,
     name,
-    projectDir
+    clientRef
   );
-  console.log(`[등록 완료] project_id=${projectId}`);
+  console.log(`[등록 ${existing ? "재사용" : "완료"}] project_id=${projectId}`);
 
   // --- 2단계: 위임형 훅 삽입(멱등) ---
   installHooks(projectDir, buildHooksToInstall());
@@ -83,6 +94,6 @@ export async function runInitCommand(opts = {}) {
   registerProjectInConfig(projectId, { localPath: projectDir, tmuxSession: sessionName, registeredAt: new Date().toISOString() });
 
   // --- 4단계: 완료 메시지 ---
-  console.log(`\n완료: 대시보드에서 확인하세요 -> ${dashboardUrl || cfg.dashboardUrl}`);
-  return { projectId, dashboardUrl, sessionName };
+  console.log(`\n완료: 대시보드에서 확인하세요 -> ${cfg.dashboardUrl || cfg.apiBaseUrl}`);
+  return { projectId, sessionName };
 }

@@ -9,7 +9,7 @@ let cached = null;
 export class SupabaseNotConfiguredError extends Error {
   constructor() {
     super(
-      "CLAUDEBRIDGE_SUPABASE_URL / CLAUDEBRIDGE_SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 " +
+      "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 " +
         "않았습니다 — 안전 게이트 2단계(웹 접근 가능 상태 점검)를 통과할 수 없는 상태입니다."
     );
     this.name = "SupabaseNotConfiguredError";

@@ -14,16 +14,16 @@ import { syncUsageForProject } from "./usage-logs.mjs";
 
 const USAGE_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
-async function dispatchResponse(sessionName, projectDir, response) {
-  if (response.kind === "ask_user_question") {
-    injectAskUserQuestionAnswer(sessionName, response.value?.optionIndex);
+async function dispatchResponse(sessionName, projectDir, normalized) {
+  if (normalized.type === "ask_user_question") {
+    injectAskUserQuestionAnswer(sessionName, normalized.optionIndex);
     return;
   }
-  if (response.kind === "permission") {
-    injectPermissionDecision(sessionName, projectDir, response.value?.decision);
+  if (normalized.type === "permission") {
+    injectPermissionDecision(sessionName, projectDir, normalized.decision);
     return;
   }
-  throw new Error(`알 수 없는 응답 종류: ${response.kind}`);
+  throw new Error(`알 수 없는 응답 종류: ${normalized.type}`);
 }
 
 function startUsageSyncLoop(projectId, projectDir) {

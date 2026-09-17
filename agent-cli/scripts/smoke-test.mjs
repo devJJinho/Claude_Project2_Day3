@@ -8,6 +8,7 @@ import { mapAskUserQuestionAnswer, mapPermissionDecision, UnrecognizedResponseEr
 import { collectUsageForProject } from "../src/log-parser.mjs";
 import { mergeHook } from "../src/settings-writer.mjs";
 import { buildHooksToInstall } from "../src/hook-delegate-template.mjs";
+import { resolveInjectionInput } from "../src/response-resolver.mjs";
 
 let passed = 0;
 function check(name, fn) {
@@ -35,9 +36,23 @@ check("key-mapping: AskUserQuestion 범위 밖 거부", () => {
 check("key-mapping: 문자열/자유 텍스트 거부", () => {
   assert.throws(() => mapAskUserQuestionAnswer("rm -rf /"), UnrecognizedResponseError);
 });
-check("key-mapping: Permission 화이트리스트만 허용", () => {
-  assert.deepEqual(mapPermissionDecision("deny"), ["3", "Enter"]);
-  assert.throws(() => mapPermissionDecision("yes_please"), UnrecognizedResponseError);
+check("key-mapping: Permission 화이트리스트만 허용(approve/deny)", () => {
+  assert.deepEqual(mapPermissionDecision("approve"), ["1", "Enter"]);
+  assert.deepEqual(mapPermissionDecision("deny"), ["2", "Enter"]);
+  assert.throws(() => mapPermissionDecision("allow_always"), UnrecognizedResponseError);
+});
+
+check("response-resolver: ask_user_question choice → optionIndex", () => {
+  const event = { type: "ask_user_question", payload: { question: "q", options: ["A", "B", "C"] } };
+  assert.deepEqual(resolveInjectionInput({ choice: "B" }, event), { type: "ask_user_question", optionIndex: 2 });
+});
+check("response-resolver: 이벤트 옵션에 없는 choice는 거부", () => {
+  const event = { type: "ask_user_question", payload: { question: "q", options: ["A", "B"] } };
+  assert.throws(() => resolveInjectionInput({ choice: "Z" }, event), UnrecognizedResponseError);
+});
+check("response-resolver: permission choice는 decision으로 그대로 전달", () => {
+  const event = { type: "permission", payload: { tool: "Bash", command: "rm x" } };
+  assert.deepEqual(resolveInjectionInput({ choice: "approve" }, event), { type: "permission", decision: "approve" });
 });
 
 check("settings-writer: 같은 훅 재삽입해도 중복 안 됨", () => {

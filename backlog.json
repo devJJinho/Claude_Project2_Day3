@@ -138,12 +138,12 @@
       "title": "로컬 에이전트 설정 파일 설계 (project_id/tmux 세션명/Supabase 키)",
       "category": "agent",
       "source_section": "G",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-013",
         "T-005"
       ],
-      "note": "코드 구현 완료: agent-cli/src/config.mjs(~/.claudebridge/config.json 읽기/쓰기, project_id↔localPath↔tmuxSession 매핑, findProjectByLocalPath 역조회), 서비스 롤 키는 I 항목대로 환경변수 전용(config.json에 저장 안 함). dep T-005(Supabase projects 테이블 스키마)가 다른 worktree(web-app 트랙)에서 아직 done이 아니라 실제 project_id 스키마와의 정합성 검증 불가 — done/doing 전환은 T-005 완료 후."
+      "note": "코드 구현 완료: agent-cli/src/config.mjs(~/.claudebridge/config.json 읽기/쓰기, project_id↔localPath↔tmuxSession 매핑, findProjectByLocalPath 역조회), 서비스 롤 키는 I 항목대로 환경변수 전용(config.json에 저장 안 함). dep T-005(Supabase projects 테이블 스키마)가 다른 worktree(web-app 트랙)에서 아직 done이 아니라 실제 project_id 스키마와의 정합성 검증 불가 — done/doing 전환은 T-005 완료 후. | 완료 근거: web-app 트랙 merge(commit 189b064)로 T-005 done 확인 후 재개. agent-cli/src/config.mjs: ~/.claudebridge/config.json(registrationToken/apiBaseUrl/dashboardUrl/projects 매핑), Supabase 자격증명은 SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY 환경변수 전용(web-app .env.example과 이름 통일 확인). findProjectByLocalPath 역조회 로직을 scripts/integration-test-mock-backend.mjs 등 여러 통합 테스트에서 실제 사용해 정상 동작 확인."
     },
     {
       "id": "T-015",
