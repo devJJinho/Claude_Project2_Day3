@@ -36,3 +36,12 @@ export function CheckIcon() {
     </svg>
   );
 }
+
+export function RefreshIcon() {
+  return (
+    <svg {...common}>
+      <path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2" strokeLinecap="round" />
+      <path d="M18 4v4h-4M6 20v-4h4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

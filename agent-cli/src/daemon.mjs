@@ -18,9 +18,13 @@ const USAGE_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 // backlog.json은 로컬 디스크 읽기 + upsert 하나뿐이라 가볍다 — 개발 중에는 자주 바뀌므로
 // usage_logs보다 훨씬 짧은 주기로 둔다(사용자 요청 2026-09-17: 웹에서 실제 상태를 보고 싶어함).
 const BACKLOG_SYNC_INTERVAL_MS = 30 * 1000;
-// /status 스크래핑은 사용자가 실제로 쓰고 있는 tmux pane에 개입하므로(quota-scraper.mjs의
-// 안전 검사로 활성 상태면 건너뛰긴 하지만) usage_logs와 같은 5분 주기로 최대한 드물게 한다.
-const QUOTA_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+// /status 스크래핑은 사용자가 실제로 쓰고 있는 tmux pane에 개입하므로, "타이핑 중"/
+// "생성 중"이면 quota-scraper.mjs의 안전 검사(isPaneSafeToInterrupt)가 무조건 건너뛴다
+// (사용자 요청 2026-09-18: 이 두 안전 검사 자체는 유지하기로 확정 — 작업 손실 위험이 있는
+// 조건이라 제거하지 않음). 대신 세션이 계속 바빠서 5분 주기로는 유휴 순간을 거의 못 잡는
+// 문제(실측: Day_4_Project에서 재시작 후 몇 시간 내내 전부 skip)를 완화하기 위해 주기를
+// 훨씬 짧게 잡아 더 자주 기회를 노린다 — 안전 검사를 우회하는 게 아니라 시도 빈도만 높임.
+const QUOTA_SYNC_INTERVAL_MS = 60 * 1000;
 
 // DialogNotShowingError는 "이미 다른 방식으로 끝난 상태"를 뜻한다(예: auto mode가 자동으로
 // 처리해 대화상자가 사라짐) — 재시도해도 다시 나타날 리 없으므로 여기서 삼켜 워터마크가

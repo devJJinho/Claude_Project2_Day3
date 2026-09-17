@@ -235,6 +235,60 @@ code {
   font-size: 14px;
 }
 
+/* 사용자 요청(2026-09-18): 백로그 화면 새로고침 버튼 + 모바일 pull-to-refresh
+   (components/dashboard/RefreshControl.tsx). */
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.refresh-control {
+  flex-shrink: 0;
+}
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.refresh-icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.refresh-icon--spinning {
+  animation: refresh-spin 0.7s linear infinite;
+}
+
+@keyframes refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pull-refresh-indicator {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--purple-soft);
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 50;
+}
+
 .section-title {
   margin: 32px 0 6px;
   font-size: 18px;

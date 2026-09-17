@@ -556,6 +556,22 @@
       "source_section": "K",
       "status": "done",
       "note": "사용자 요청(2026-09-18): T-049에서 가로 스크롤을 추가했지만 여전히 ID/상태/카테고리 칼럼이 두 줄로 잘리는 경우가 있었음 -> .col-nowrap(white-space:nowrap)을 이 세 칼럼에만 적용하고, .table-scroll의 overflow-x:auto를 모바일 미디어쿼리 밖으로 빼서 화면 폭과 무관하게 항상 가로 스크롤이 가능하게 함(제목 칼럼은 긴 텍스트라 계속 줄바꿈 허용). | 완료 근거: 프로덕션에 배포된 col-nowrap 클래스 확인(CSS 번들에 포함) 후, 인증된 세션 위 390px iframe으로 백로그 페이지를 직접 렌더링해 확인: ID/상태/카테고리 세 칼럼이 모두 한 줄로 유지되고(줄바꿈 없음), 제목 칼럼만 컨테이너 폭에서 잘려 가로 스크롤 대상이 됨(스크린샷 확인). npm run verify + next build 통과."
+    },
+    {
+      "id": "T-051",
+      "title": "백로그 화면 새로고침 버튼 + 모바일 pull-to-refresh",
+      "category": "dashboard",
+      "source_section": "K",
+      "status": "done",
+      "note": "사용자 요청(2026-09-18): 백로그 화면에 새로고침 버튼 추가, 모바일 웹에서는 아래로 당겨서 새로고침도 지원. components/dashboard/RefreshControl.tsx(client component)를 추가해 router.refresh()로 force-dynamic 서버 컴포넌트를 다시 가져온다. 터치 이벤트로 화면 맨 위(scrollY<=0)에서 아래로 당기는 제스처를 감지, 70px 이상 당기면 새로고침. | 완료 근거: components/dashboard/RefreshControl.tsx 신설(client component, router.refresh() 호출 + touch 이벤트 기반 pull-to-refresh), app/dashboard/backlog/page.tsx에 배치, icons.tsx에 RefreshIcon 추가, globals.css에 .refresh-control/.refresh-btn/.pull-refresh-indicator 등 스타일 추가. npm run verify + next build 통과."
+    },
+    {
+      "id": "T-052",
+      "title": "/status 쿼터 동기화 주기 단축(5분→1분, 안전 검사는 유지)",
+      "category": "agent",
+      "source_section": "I",
+      "status": "done",
+      "note": "사용자 요청(2026-09-18): '/status를 세션 유휴와 관련 없이 주기적으로 조회해서 업데이트해줘' -> 명확화 질문 결과, isPaneSafeToInterrupt의 두 안전 검사(타이핑 중/생성 중 스킵)는 그대로 유지하기로 확정(작업 손실 위험 때문에 우회 안 함). 대신 QUOTA_SYNC_INTERVAL_MS를 5분에서 1분으로 줄여 유휴 순간을 잡을 기회를 늘림 — 실측(Day_4_Project)에서 5분 주기로는 몇 시간째 단 한 번도 성공 못 함. | 완료 근거: agent-cli/src/daemon.mjs의 QUOTA_SYNC_INTERVAL_MS를 5*60*1000에서 60*1000으로 변경, isPaneSafeToInterrupt의 두 안전 검사(타이핑 중/생성 중)는 그대로 유지(quota-scraper.mjs 수정 없음). npm run verify(agent-cli 쪽은 smoke-test로 별도 확인) 통과."
     }
   ]
 }

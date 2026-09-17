@@ -1,4 +1,5 @@
 import { getAllProjectBacklogs, KNOWN_STATUS_ORDER } from "@/lib/db/backlog";
+import { RefreshControl } from "@/components/dashboard/RefreshControl";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +24,13 @@ export default async function BacklogPage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">백로그</h1>
-      <p className="page-subtitle">등록된 프로젝트의 로컬 backlog.json 최신 스냅샷입니다(로컬 에이전트가 주기적으로 동기화).</p>
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">백로그</h1>
+          <p className="page-subtitle">등록된 프로젝트의 로컬 backlog.json 최신 스냅샷입니다(로컬 에이전트가 주기적으로 동기화).</p>
+        </div>
+        <RefreshControl />
+      </div>
 
       {backlogs.length === 0 ? (
         <div className="card">
