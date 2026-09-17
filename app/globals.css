@@ -229,6 +229,11 @@ code {
   font-size: 14px;
 }
 
+.section-title {
+  margin: 32px 0 6px;
+  font-size: 18px;
+}
+
 /* --- 카드 공통 --- */
 .card {
   background: var(--card-bg);
@@ -419,6 +424,10 @@ code {
   background: var(--orange);
 }
 
+.pending-item--needs_info .pending-item-bar {
+  background: var(--purple);
+}
+
 .pending-item-body {
   padding: 18px 20px;
   flex: 1;
@@ -449,6 +458,11 @@ code {
 .badge--permission {
   background: var(--orange-soft);
   color: var(--orange);
+}
+
+.badge--needs_info {
+  background: var(--purple-soft);
+  color: var(--purple);
 }
 
 .pending-item-project {

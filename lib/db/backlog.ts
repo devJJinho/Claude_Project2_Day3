@@ -36,4 +36,28 @@ export async function getAllProjectBacklogs(): Promise<ProjectBacklog[]> {
   return ((data ?? []) as BacklogSnapshotRow[]).map(summarize);
 }
 
+export interface NeedsInfoBacklogItem {
+  projectId: string;
+  projectName: string | null;
+  task: BacklogTask;
+}
+
+// T-048(사용자 요청 2026-09-17): "확인 필요(needs_info)" 백로그 태스크를 대기 질문·권한
+// 탭에도 같이 보여주기 위한 조회. 라이브 blocked_events와 달리 이 항목들은 응답 버튼이
+// 없다 — 실제 처리는 사람이 외부에서(예: OAuth 클라이언트 발급) 해결한 뒤 로컬에서 직접
+// backlog 상태를 바꾸는 것이라 tmux 주입 대상이 아니다(I 항목: 임의 텍스트 주입 경로를
+// 새로 만들지 않음).
+export async function getNeedsInfoBacklogItems(): Promise<NeedsInfoBacklogItem[]> {
+  const backlogs = await getAllProjectBacklogs();
+  const items: NeedsInfoBacklogItem[] = [];
+  for (const b of backlogs) {
+    for (const task of b.tasks) {
+      if (task.status === "needs_info") {
+        items.push({ projectId: b.projectId, projectName: b.projectName, task });
+      }
+    }
+  }
+  return items;
+}
+
 export { KNOWN_STATUS_ORDER };
