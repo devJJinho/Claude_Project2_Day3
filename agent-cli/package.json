@@ -1,0 +1,26 @@
+{
+  "name": "claudebridge",
+  "version": "0.1.0",
+  "description": "ClaudeBridge 로컬 에이전트/CLI — Claude Code 세션을 웹 대시보드로 원격 제어하기 위한 전역 설치용 Node.js CLI",
+  "type": "module",
+  "bin": {
+    "claudebridge": "./bin/claudebridge.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "smoke-test": "node scripts/smoke-test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "web-push": "^3.6.7"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

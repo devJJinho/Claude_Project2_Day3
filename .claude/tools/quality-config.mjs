@@ -11,9 +11,17 @@ export const LINE_LIMIT = 300;
 
 // 소스로 취급할 디렉터리(재귀 없음, 얕은 스캔) + 확장자. backlog.json(데이터), PROGRESS.md(생성물),
 // .backlog-backups/*.bak(생성물), node_modules(의존성)는 의도적으로 제외한다.
-// 애플리케이션 코드(E2 기술 스택 확정 후 생길 src/ 하위 디렉터리)는 아직 없다 — 생기면 여기에
-// 실제 .mjs/.js가 있는 하위 디렉터리를 각각 등록할 것(얕은 스캔이라 src 자체로는 부족함).
-export const SOURCE_DIRS = [".claude/hooks", ".claude/tools", "dashboard"];
+// 애플리케이션 코드: agent-cli/(로컬 에이전트·전역 CLI, T-013 스캐폴드로 추가) — 얕은
+// 스캔이라 .mjs/.js가 실제로 있는 하위 디렉터리를 각각 등록해야 한다(agent-cli 자체 루트에는
+// 소스가 없어 등록하지 않음).
+export const SOURCE_DIRS = [
+  ".claude/hooks",
+  ".claude/tools",
+  "dashboard",
+  "agent-cli/bin",
+  "agent-cli/src",
+  "agent-cli/scripts",
+];
 export const SOURCE_EXTENSIONS = [".mjs", ".js"];
 
 // 이 프로젝트의 lint 명령. 외부 도구가 없으면 NOT_CONFIGURED로 보고하고 통과로 처리하지 않는다.

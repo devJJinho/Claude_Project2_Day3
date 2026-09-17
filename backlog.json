@@ -121,38 +121,42 @@
       "title": "로컬 에이전트 Node.js 프로젝트 스캐폴드 생성",
       "category": "agent",
       "source_section": "A",
-      "status": "todo"
+      "status": "done",
+      "note": "완료 근거: agent-cli/ Node.js ESM 프로젝트 스캐폴드 생성(package.json bin 필드로 전역 설치 구조, bin/claudebridge.mjs 진입점, src/ 모듈 24개). 루트 npm run verify(check:length/lint/build) 통과, agent-cli/scripts/smoke-test.mjs 9건 통과(node scripts/smoke-test.mjs 실행 확인)."
     },
     {
       "id": "T-014",
       "title": "로컬 에이전트 설정 파일 설계 (project_id/tmux 세션명/Supabase 키)",
       "category": "agent",
       "source_section": "G",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-013",
         "T-005"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/config.mjs(~/.claudebridge/config.json 읽기/쓰기, project_id↔localPath↔tmuxSession 매핑, findProjectByLocalPath 역조회), 서비스 롤 키는 I 항목대로 환경변수 전용(config.json에 저장 안 함). dep T-005(Supabase projects 테이블 스키마)가 다른 worktree(web-app 트랙)에서 아직 done이 아니라 실제 project_id 스키마와의 정합성 검증 불가 — done/doing 전환은 T-005 완료 후."
     },
     {
       "id": "T-015",
       "title": "AskUserQuestion 발생 감지 훅 작성",
       "category": "agent",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-013"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/ask-question-hook.mjs: PreToolUse(AskUserQuestion) 위임형 훅 핸들러 작성, tool_input에서 question/options 추출해 blocked_events 기록 + push 발송 호출. bin/claudebridge.mjs 'hook ask-question' 서브커맨드로 연결, node --check/lint 통과. 단, 실제 AskUserQuestion tool_input 필드명은 라이브 세션으로 미검증 — README.md '확인이 필요한 가정' 1번에 명시."
     },
     {
       "id": "T-016",
       "title": "Permission 프롬프트 발생 감지 훅 작성",
       "category": "agent",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-013"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/permission-hook.mjs: Notification 위임형 훅 핸들러 작성, message 텍스트에서 permission 여부/도구명 추출해 blocked_events 기록. bin/claudebridge.mjs 'hook permission' 서브커맨드로 연결, node --check/lint 통과. Notification 페이로드 스키마 가정은 README.md '확인이 필요한 가정' 2번에 명시(라이브 검증 필요)."
     },
     {
       "id": "T-017",
@@ -183,10 +187,11 @@
       "title": "tmux 세션 존재 확인 및 생성 로직 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-013"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/tmux-session.mjs: hasSession/createSession/ensureSession(재사용 정책, README 미결질문 해소)/startClaudeCode 작성, spawnSync 인자 배열 방식(shell 미사용)으로 명령 인젝션 방지. 이 머신에는 tmux가 설치돼 있지 않아(brew list tmux 미설치 확인) 실제 세션 생성은 검증 못했으나, isTmuxAvailable()이 부재를 정확히 false로 감지하고 hasSession도 예외 없이 false를 반환함을 실측 확인(ENOENT 처리 정상). 실제 세션 생성/재사용 분기는 tmux 설치된 환경에서 재검증 필요 — README.md에 기록."
     },
     {
       "id": "T-020",
@@ -293,17 +298,19 @@
       "title": "Claude Code 로컬 세션 로그 파일 위치/포맷 조사",
       "category": "usage",
       "source_section": "E",
-      "status": "todo"
+      "status": "done",
+      "note": "완료 근거: 이 머신에서 실제 ~/.claude/projects/<sanitized-cwd>/<sessionId>.jsonl 파일을 직접 열어 포맷 확인(2026-09-17). type='assistant' 라인에 message.usage.{input_tokens,output_tokens,cache_creation_input_tokens,cache_read_input_tokens}, message.model, cwd, sessionId, requestId 필드 존재 확인. 근거를 agent-cli/src/log-locator.mjs 상단 주석과 README.md에 기록."
     },
     {
       "id": "T-030",
       "title": "로컬 세션 로그 파싱 함수 작성",
       "category": "usage",
       "source_section": "E",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-029"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/log-parser.mjs: readline 스트림으로 .jsonl 파싱, type==assistant만 usage 레코드로 변환. scripts/smoke-test.mjs가 실제 이 머신의 세션 로그(collectUsageForProject)를 파싱해 179건의 실제 usage 레코드 추출 확인(node scripts/smoke-test.mjs 실행 결과)."
     },
     {
       "id": "T-031",
@@ -399,10 +406,11 @@
       "title": "로컬 에이전트를 전역 설치 CLI 패키지로 구성 (bin 엔트리 + npm 전역 배포 구조)",
       "category": "infra",
       "source_section": "H",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-013"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/package.json에 bin:{claudebridge: ./bin/claudebridge.mjs} 필드로 전역 설치 구조 구성. 실제로 별도 디렉터리에 claudebridge 셸 shim을 만들어 PATH에 연결한 뒤 'echo ... | claudebridge hook guard'를 실행해 전역 설치와 동일한 방식으로 동작함을 실측 확인(safety-gate-install.mjs 재검증 테스트에서 재사용). 정적 top-level import가 무관한 의존성(web-push 등) 부재로 깨지는 문제를 발견해 bin/claudebridge.mjs를 서브커맨드별 동적 import로 리팩터링."
     },
     {
       "id": "T-040",
@@ -443,29 +451,32 @@
       "title": "settings.json 위임형 훅 템플릿 작성 (전역 CLI 호출 한 줄만 등록, 로직 파일 복사 없음)",
       "category": "agent",
       "source_section": "H",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-015",
         "T-016",
         "T-039"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/hook-delegate-template.mjs(guard/ask-question/permission 3종을 claudebridge 호출 한 줄로 정의) + settings-writer.mjs(mergeHook/installHooks — 기존 항목 보존, 동일 command 중복 삽입 방지). smoke-test.mjs에서 같은 훅을 두 번 병합해도 배열 길이가 1로 유지됨을 확인, safety-gate-install.mjs 테스트에서 실제 임시 프로젝트의 .claude/settings.json에 정확한 JSON이 기록됨을 cat으로 실측 확인."
     },
     {
       "id": "T-044",
       "title": "위험 명령어 차단 훅 등록·동작 여부 검증 로직 작성 (.claude/settings.json PreToolUse Bash 훅 존재 확인)",
       "category": "security",
       "source_section": "I",
-      "status": "todo"
+      "status": "done",
+      "note": "완료 근거: agent-cli/src/safety-gate-stage1.mjs: 설정 정적 확인이 아니라 합성 위험 명령(rm -rf /)을 실제 등록된 훅 프로세스에 stdin으로 흘려보내 deny 여부까지 검증. 이 저장소 루트(.claude/settings.json에 실제 block-dangerous-commands.mjs 등록됨)에 대해 실행해 passed:true 확인, 훅 없는 임시 디렉터리에 대해 passed:false 확인(둘 다 실측)."
     },
     {
       "id": "T-045",
       "title": "안전 게이트 1단계 실패 시 CLI 번들 표준 위험 명령어 차단 훅 자동 설치 후 재검증하는 로직 작성",
       "category": "security",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-044"
-      ]
+      ],
+      "note": "완료 근거: agent-cli/src/safety-gate-install.mjs: 훅 없는 임시 디렉터리에 대해 claudebridge 표준 가드(hook-delegate-template.mjs)를 자동 설치 후, PATH에 claudebridge를 연결한 상태로 재검증까지 실행해 passed:true 확인(실제 tmux 없이도 checkStage1GuardActive가 재설치된 훅의 실제 deny 동작까지 검증). 설치 전/설치 직후 재검증 모두 실측."
     },
     {
       "id": "T-047",

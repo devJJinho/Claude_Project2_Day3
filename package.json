@@ -4,7 +4,7 @@
   "type": "module",
   "description": "ClaudeBridge — Claude Code 원격 제어 대시보드. 애플리케이션 코드는 아직 없음(기술 스택: Next.js+Vercel+Supabase, 개발요청서.md H 참고). 현재는 backlog 관리 CLI/훅/대시보드 도구만 있음.",
   "scripts": {
-    "lint": "oxlint --deny-warnings .claude/hooks .claude/tools dashboard",
+    "lint": "oxlint --deny-warnings .claude/hooks .claude/tools dashboard agent-cli/bin agent-cli/src agent-cli/scripts",
     "build": "node .claude/tools/check-build.mjs",
     "check:length": "node .claude/tools/check-code-length.mjs",
     "verify": "npm run check:length && npm run lint && npm run build"
