@@ -322,12 +322,13 @@
       "title": "파싱한 토큰 사용량을 Supabase usage_logs에 적재하는 로직 작성",
       "category": "usage",
       "source_section": "E",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-030",
         "T-008",
         "T-014"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/usage-logs.mjs(uploadUsageRecords — (project_id,request_id) upsert 가정, syncUsageForProject로 log-parser와 연결). log-parser 파싱 자체는 T-030에서 실측 검증됨. dep T-008(usage_logs 테이블 스키마, web-app 트랙)·T-014(blocked) 미완료라 실제 테이블 upsert 검증 불가."
     },
     {
       "id": "T-032",
