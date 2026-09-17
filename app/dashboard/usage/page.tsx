@@ -2,6 +2,7 @@ import { getUsageSummary } from "@/lib/db/usage";
 import { getQuotaByProject } from "@/lib/db/quota";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ClockIcon, CheckIcon } from "@/components/dashboard/icons";
+import { RefreshControl } from "@/components/dashboard/RefreshControl";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +15,13 @@ export default async function UsagePage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">토큰 사용량</h1>
-      <p className="page-subtitle">최근 30일 집계 (그 이전 기록은 자동 삭제됩니다 — D 항목).</p>
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">토큰 사용량</h1>
+          <p className="page-subtitle">최근 30일 집계 (그 이전 기록은 자동 삭제됩니다 — D 항목).</p>
+        </div>
+        <RefreshControl />
+      </div>
 
       <section className="stat-grid stat-grid--2">
         <StatCard label="입력 토큰 합계" value={usage.totalInputTokens.toLocaleString("ko-KR")} color="blue" icon={<ClockIcon />} />

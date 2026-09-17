@@ -3,6 +3,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { FolderIcon, BellIcon, ClockIcon, CheckIcon } from "@/components/dashboard/icons";
 import { DonutChart } from "@/components/dashboard/DonutChart";
 import { ProgressBar } from "@/components/dashboard/ProgressBar";
+import { RefreshControl } from "@/components/dashboard/RefreshControl";
 
 // 매 요청마다 최신 상태를 봐야 한다 — 로컬 에이전트가 수초~10초 간격으로 Supabase를 갱신하는
 // 동안, 대시보드를 새로고침하면 항상 그 시점의 최신 값을 보여줘야 하므로 정적 캐시를 끈다.
@@ -14,8 +15,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">대시보드</h1>
-      <p className="page-subtitle">등록된 프로젝트의 Claude Code 세션 상태를 한눈에 확인하세요.</p>
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">대시보드</h1>
+          <p className="page-subtitle">등록된 프로젝트의 Claude Code 세션 상태를 한눈에 확인하세요.</p>
+        </div>
+        <RefreshControl />
+      </div>
 
       <section className="stat-grid">
         <StatCard label="전체 프로젝트" value={summary.totalProjects} color="purple" icon={<FolderIcon />} />

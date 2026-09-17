@@ -572,6 +572,14 @@
       "source_section": "I",
       "status": "done",
       "note": "사용자 요청(2026-09-18): '/status를 세션 유휴와 관련 없이 주기적으로 조회해서 업데이트해줘' -> 명확화 질문 결과, isPaneSafeToInterrupt의 두 안전 검사(타이핑 중/생성 중 스킵)는 그대로 유지하기로 확정(작업 손실 위험 때문에 우회 안 함). 대신 QUOTA_SYNC_INTERVAL_MS를 5분에서 1분으로 줄여 유휴 순간을 잡을 기회를 늘림 — 실측(Day_4_Project)에서 5분 주기로는 몇 시간째 단 한 번도 성공 못 함. | 완료 근거: agent-cli/src/daemon.mjs의 QUOTA_SYNC_INTERVAL_MS를 5*60*1000에서 60*1000으로 변경, isPaneSafeToInterrupt의 두 안전 검사(타이핑 중/생성 중)는 그대로 유지(quota-scraper.mjs 수정 없음). npm run verify(agent-cli 쪽은 smoke-test로 별도 확인) 통과."
+    },
+    {
+      "id": "T-053",
+      "title": "새로고침 버튼을 설정 제외 전체 페이지로 확장",
+      "category": "dashboard",
+      "source_section": "K",
+      "status": "done",
+      "note": "사용자 요청(2026-09-18): T-051에서 백로그 화면에만 있던 RefreshControl을 대시보드/대기 질문·권한/토큰 사용량 페이지에도 추가(설정 페이지는 제외). | 완료 근거: app/dashboard/page.tsx, app/dashboard/pending/page.tsx, app/dashboard/usage/page.tsx에 동일한 .page-header-row + RefreshControl 패턴 적용(설정 페이지는 제외). npm run verify + next build 통과."
     }
   ]
 }

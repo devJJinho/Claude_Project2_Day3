@@ -4,6 +4,7 @@ import { formatRelativeTime } from "@/lib/time";
 import { ResponseButtons } from "@/components/dashboard/ResponseButtons";
 import { PermissionButtons } from "@/components/dashboard/PermissionButtons";
 import type { AskUserQuestionPayload, PermissionPayload } from "@/lib/supabase/types";
+import { RefreshControl } from "@/components/dashboard/RefreshControl";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,13 @@ export default async function PendingPage() {
 
   return (
     <div className="page">
-      <h1 className="page-title">대기 중인 질문·권한</h1>
-      <p className="page-subtitle">오래 기다린 항목이 위에 표시됩니다.</p>
+      <div className="page-header-row">
+        <div>
+          <h1 className="page-title">대기 중인 질문·권한</h1>
+          <p className="page-subtitle">오래 기다린 항목이 위에 표시됩니다.</p>
+        </div>
+        <RefreshControl />
+      </div>
 
       {events.length === 0 ? (
         <div className="card empty-state">지금은 대기 중인 질문·권한이 없습니다.</div>
