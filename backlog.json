@@ -200,11 +200,12 @@
       "title": "tmux send-keys로 AskUserQuestion 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-018",
         "T-019"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer — key-mapping.mjs 화이트리스트를 통과한 키 목록만 tmux send-keys에 전달. 잘못된 optionIndex(예:999)가 tmux 호출 전에 UnrecognizedResponseError로 거부됨을 실측 확인. dep T-018이 blocked라 doing/done 전환 불가. 이 머신에 tmux 미설치(brew list tmux 미설치)라 실제 send-keys 성공 여부는 tmux 설치 환경에서 재검증 필요."
     },
     {
       "id": "T-021",
