@@ -546,8 +546,8 @@
       "title": "모바일 반응형 레이아웃 수정: 계정정보 위치, 테이블 가로 스크롤",
       "category": "dashboard",
       "source_section": "K",
-      "status": "doing",
-      "note": "사용자 요청(2026-09-18, 실제 모바일 폭 스크린샷 기반): 1) 좁은 화면에서 사이드바가 가로 wrap되면서 '프로젝트 전환'/계정 정보가 실제 페이지 콘텐츠보다 위쪽에 몰려 보임 -> MobileAccountBar를 app-main 다음 형제로 분리 렌더링해 DOM 순서상 항상 맨 아래로 이동, 데스크톱에서는 CSS로 숨김. 2) 백로그/사용량 테이블의 셀 내용(예: T-001, 완료)이 좁은 화면에서 줄바꿈됨 -> .table-scroll 래퍼(overflow-x:auto + min-width)로 가로 스크롤 처리. 크롬 확장으로 실제 뷰포트 리사이즈가 안 먹혀(내부 window.innerWidth 고정) iframe(390px) 임베드로 직접 재현해 검증함."
+      "status": "done",
+      "note": "사용자 요청(2026-09-18, 실제 모바일 폭 스크린샷 기반): 1) 좁은 화면에서 사이드바가 가로 wrap되면서 '프로젝트 전환'/계정 정보가 실제 페이지 콘텐츠보다 위쪽에 몰려 보임 -> MobileAccountBar를 app-main 다음 형제로 분리 렌더링해 DOM 순서상 항상 맨 아래로 이동, 데스크톱에서는 CSS로 숨김. 2) 백로그/사용량 테이블의 셀 내용(예: T-001, 완료)이 좁은 화면에서 줄바꿈됨 -> .table-scroll 래퍼(overflow-x:auto + min-width)로 가로 스크롤 처리. 크롬 확장으로 실제 뷰포트 리사이즈가 안 먹혀(내부 window.innerWidth 고정) iframe(390px) 임베드로 직접 재현해 검증함. | 완료 근거: iframe(390px, 실제 인증된 세션 위에 임베드)으로 프로덕션(claude-project2-day3.vercel.app)에서 직접 재현·검증: 1) MobileAccountBar(프로젝트 전환/계정 이메일/로그아웃)가 백로그 페이지 전체 콘텐츠 맨 아래에 렌더링됨(스크린샷 확인) - 더 이상 사이드바 nav와 함께 상단에 몰려 보이지 않음. 2) 백로그 테이블 행(T-001/완료/infra/제목)이 줄바꿈 없이 한 줄로 유지되고 .table-scroll이 가로 스크롤을 제공함(스크린샷 확인). npm run verify + next build 통과."
     }
   ]
 }
