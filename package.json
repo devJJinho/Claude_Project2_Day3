@@ -2,14 +2,30 @@
   "name": "claudebridge",
   "private": true,
   "type": "module",
-  "description": "ClaudeBridge — Claude Code 원격 제어 대시보드. 애플리케이션 코드는 아직 없음(기술 스택: Next.js+Vercel+Supabase, 개발요청서.md H 참고). 현재는 backlog 관리 CLI/훅/대시보드 도구만 있음.",
+  "description": "ClaudeBridge — Claude Code 원격 제어 대시보드(Next.js + Vercel + Supabase). backlog 관리용 CLI/훅/대시보드 도구와 애플리케이션 본체(app/, components/, lib/)가 한 저장소에 공존한다.",
   "scripts": {
-    "lint": "oxlint --deny-warnings .claude/hooks .claude/tools dashboard agent-cli/bin agent-cli/src agent-cli/scripts",
+    "dev": "next dev",
+    "build:next": "next build",
+    "start": "next start",
+    "lint": "node .claude/tools/check-lint.mjs",
     "build": "node .claude/tools/check-build.mjs",
     "check:length": "node .claude/tools/check-code-length.mjs",
     "verify": "npm run check:length && npm run lint && npm run build"
   },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "next": "15.5.25",
+    "next-auth": "^4.24.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "server-only": "^0.0.1",
+    "zod": "^3.24.1"
+  },
   "devDependencies": {
-    "oxlint": "^1.83.0"
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "oxlint": "^1.83.0",
+    "typescript": "^5.7.3"
   }
 }

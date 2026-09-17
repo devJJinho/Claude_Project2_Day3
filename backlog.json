@@ -8,7 +8,8 @@
       "title": "Next.js 프로젝트 스캐폴드 생성 (App Router, TypeScript)",
       "category": "infra",
       "source_section": "H",
-      "status": "todo"
+      "status": "done",
+      "note": "완료 근거: Next.js 15.5.25(App Router, TS) 스캐폴드 완료: package.json/tsconfig.json/next.config.mjs/app/layout.tsx,page.tsx,globals.css. npm run verify(length/lint/build) 통과 + npm run build:next(더미 env)로 next build 11/11 페이지 생성 성공 확인."
     },
     {
       "id": "T-002",
@@ -34,59 +35,65 @@
       "title": "환경변수 구조 설계 (서비스 롤 키는 서버 전용으로 분리)",
       "category": "infra",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-001"
-      ]
+      ],
+      "note": "완료 근거: lib/env/server.ts(server-only, getter로 지연 검증)+lib/env/public.ts+.env.example 작성. 서비스 롤 키는 server-only 패키지로 클라이언트 번들 유입 시 빌드 에러 나게 차단, NEXT_PUBLIC_ 접두사는 VAPID 공개키 하나뿐(Supabase는 브라우저에서 직접 호출 안 함). npm run build(tsc --noEmit) 통과."
     },
     {
       "id": "T-005",
       "title": "Supabase projects 테이블 스키마 작성 (project_id 기반 확장 고려)",
       "category": "backend",
       "source_section": "G",
-      "status": "todo"
+      "status": "done",
+      "note": "완료 근거: supabase/migrations/20260917000100_create_projects.sql — project_id(text) 기본키 직접 발급 방식으로 G 항목 확장 설계 반영, RLS 활성화(정책 없음=서비스 롤 전용)."
     },
     {
       "id": "T-006",
       "title": "Supabase blocked_events 테이블 스키마 작성 (질문/권한 대기 이벤트)",
       "category": "backend",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-005"
-      ]
+      ],
+      "note": "완료 근거: supabase/migrations/20260917000200_create_blocked_events.sql — type(ask_user_question|permission) CHECK, payload jsonb, status(pending|resolved), project_id FK. lib/supabase/types.ts/lib/db/events.ts로 타입·조회 계층 구현."
     },
     {
       "id": "T-007",
       "title": "Supabase responses 테이블 스키마 작성 (사용자가 고른 응답 기록)",
       "category": "backend",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-005"
-      ]
+      ],
+      "note": "완료 근거: supabase/migrations/20260917000300_create_responses.sql(event_id unique) + lib/db/responses.ts(recordResponse — choice를 payload.options 또는 approve/deny로만 제한하는 화이트리스트 검증, I 항목)."
     },
     {
       "id": "T-008",
       "title": "Supabase usage_logs 테이블 스키마 작성 (토큰 사용량)",
       "category": "backend",
       "source_section": "E",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-005"
-      ]
+      ],
+      "note": "완료 근거: supabase/migrations/20260917000400_create_usage_logs.sql(session_id/model nullable — T-029 로그 포맷 조사 전이라 최소 스키마) + lib/db/usage.ts(getUsageSummary)."
     },
     {
       "id": "T-009",
       "title": "질문/응답/사용량 30일 후 자동 삭제 정책(TTL) 설정",
       "category": "backend",
       "source_section": "D",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-006",
         "T-007",
         "T-008"
-      ]
+      ],
+      "note": "완료 근거: 이중 구현: supabase/migrations/20260917000600_ttl_cleanup_policy.sql(pg_cron 있으면 매일 03시 자동 정리 함수 스케줄링, pg_available_extensions로 존재 여부 방어) + app/api/cron/cleanup-expired/route.ts(lib/db/cleanup.ts)+vercel.json crons(매일 1회, CRON_SECRET로 인증) — pg_cron이 Supabase 요금제에서 막혀 있어도 Vercel Cron으로 30일 TTL이 동작하도록 이중 안전장치."
     },
     {
       "id": "T-010",
@@ -101,20 +108,22 @@
       "title": "Next.js에 구글 로그인 연동",
       "category": "auth",
       "source_section": "C",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-001"
-      ]
+      ],
+      "note": "완료 근거: lib/auth/options.ts(NextAuth GoogleProvider, JWT 세션)+app/api/auth/[...nextauth]/route.ts+components/auth/GoogleLoginButton.tsx. signIn 콜백에서 화이트리스트 검증(T-012와 연동). next build로 /api/auth/[...nextauth] 라우트 생성 확인."
     },
     {
       "id": "T-012",
       "title": "이메일 화이트리스트 검증 미들웨어 작성 (jhjeong710@gmail.com만 허용)",
       "category": "auth",
       "source_section": "C",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-011"
-      ]
+      ],
+      "note": "완료 근거: lib/auth/whitelist.ts(isWhitelistedEmail, ALLOWED_EMAILS 파싱)+middleware.ts(/dashboard/** 보호, next-auth/jwt getToken으로 검증)+lib/auth/options.ts signIn 콜백(1차 방어)+lib/auth/session.ts(API 라우트용). 기본값 jhjeong710@gmail.com 하나. next build로 미들웨어(edge, 56.4kB) 정상 번들 확인."
     },
     {
       "id": "T-013",
@@ -237,66 +246,72 @@
       "title": "대시보드 로그인 페이지 UI",
       "category": "dashboard",
       "source_section": "C",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-011",
         "T-012"
-      ]
+      ],
+      "note": "완료 근거: app/login/page.tsx(K 항목: 화이트 라운드 카드+퍼플 강조, 그라디언트 배경)+components/auth/GoogleLoginButton.tsx. AccessDenied 에러 메시지 표시. next build로 /login 라우트 생성 확인."
     },
     {
       "id": "T-024",
       "title": "백로그 상태 요약 뷰 (todo/doing/done 카운트)",
       "category": "dashboard",
       "source_section": "G",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-005",
         "T-023"
-      ]
+      ],
+      "note": "완료 근거: app/dashboard/page.tsx — 상태 요약 통계 카드 4개(전체 프로젝트=보라/대기중=주황/오늘 처리=파랑/전체 완료=초록, lib/db/events.ts getEventStatusSummary) + DonutChart(이벤트 상태 분포) + ProgressBar(프로젝트별 처리율). dataviz 스킬 validate_palette.js로 4색 조합 검증(PASS, 대비 WARN이라 텍스트 라벨 항상 병기)."
     },
     {
       "id": "T-025",
       "title": "대기 중인 질문/권한 목록 뷰",
       "category": "dashboard",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-006",
         "T-023"
-      ]
+      ],
+      "note": "완료 근거: app/dashboard/pending/page.tsx — listPendingEvents(created_at asc)로 오래된 순 정렬, 색상 바(파랑=질문/주황=권한)+상대 시각(lib/time.ts)으로 구분. K 항목 '업커밍 패널' 스타일 반영."
     },
     {
       "id": "T-026",
       "title": "AskUserQuestion 응답 선택 UI (옵션 버튼 클릭 시 responses 기록)",
       "category": "dashboard",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-007",
         "T-025"
-      ]
+      ],
+      "note": "완료 근거: app/api/responses/route.ts(POST, expectedType=ask_user_question)+components/dashboard/ResponseButtons.tsx(옵션 버튼 클릭만 허용, 자유 텍스트 입력창 없음)+lib/db/responses.ts recordResponse. 클릭 시 responses insert+blocked_events.status=resolved 갱신."
     },
     {
       "id": "T-027",
       "title": "Permission 승인/거부 버튼 UI",
       "category": "dashboard",
       "source_section": "B",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-007",
         "T-025"
-      ]
+      ],
+      "note": "완료 근거: app/api/permissions/route.ts(POST, decision enum('approve','deny'), expectedType=permission)+components/dashboard/PermissionButtons.tsx. 로컬 게이트(I 항목 1단계) 재검증은 로컬 에이전트 책임임을 라우트 주석에 명시(웹은 로컬 훅 상태를 알 수 없음)."
     },
     {
       "id": "T-028",
       "title": "토큰 사용량 표시 뷰",
       "category": "dashboard",
       "source_section": "E",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-008",
         "T-023"
-      ]
+      ],
+      "note": "완료 근거: app/dashboard/usage/page.tsx — 입력/출력 토큰 합계 스탯 카드 + 프로젝트별 표(lib/db/usage.ts getUsageSummary). usage_logs가 비어있을 수 있음(T-029 대기)을 빈 상태 문구로 안내."
     },
     {
       "id": "T-029",
@@ -335,10 +350,11 @@
       "title": "웹 푸시 구독 등록 (Service Worker + VAPID 키 설정)",
       "category": "notify",
       "source_section": "F",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-001"
-      ]
+      ],
+      "note": "완료 근거: lib/env/public.ts(vapidPublicKey)+components/dashboard/PushSubscribeButton.tsx(구독 생성+POST /api/push/subscribe)+public/sw.js(push/notificationclick 핸들러)+supabase/migrations/20260917000500_create_push_subscriptions.sql+lib/db/push.ts. 실제 발송은 로컬 에이전트 담당임을 주석/보고서에 명시. npm run verify 통과."
     },
     {
       "id": "T-033",
@@ -424,10 +440,11 @@
       "title": "프로젝트 등록 API 구현 (POST /api/projects, project_id 발급 — 콘솔 수동 작업 제거)",
       "category": "backend",
       "source_section": "G",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-005"
-      ]
+      ],
+      "note": "완료 근거: app/api/projects/route.ts(POST, Bearer 토큰 인증+zod 검증)+lib/db/projects.ts(createOrReuseProject, client_ref 기반 idempotency)+lib/security/registration-token.ts. API 계약을 route.ts 주석과 최종 보고서에 명시. npm run verify + next build로 /api/projects 라우트 생성 확인."
     },
     {
       "id": "T-041",
