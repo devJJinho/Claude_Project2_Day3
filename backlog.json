@@ -508,11 +508,12 @@
       "title": "웹 접근 가능 상태 점검(2단계: tmux 세션·에이전트 연결·백엔드 통신 확인) 로직 작성",
       "category": "agent",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019"
-      ]
+      ],
+      "note": "완료 근거: dep T-018 done으로 재개. agent-cli/src/safety-gate-stage2.mjs(tmux 세션+Claude Code 프로세스+Supabase 연결 3종 점검, sessionName 생략 시 init 프리플라이트 모드)는 이미 임시 프로젝트 디렉터리에 대해 세 검사 모두 정확한 실패 사유(tmux 없음/Supabase 미설정)를 반환함을 실측 확인(2026-09-17). 이 결과가 boot-sequence.mjs를 통해 1단계 통과 후에만 호출됨도 함께 검증됨."
     },
     {
       "id": "T-046",
