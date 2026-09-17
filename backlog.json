@@ -27,8 +27,8 @@
       "title": "Supabase 프로젝트 생성 및 연결 키 발급",
       "category": "infra",
       "source_section": "H",
-      "status": "needs_info",
-      "note": "Supabase 프로젝트 생성은 사용자의 Supabase 계정이 필요한 수동 작업입니다. 프로젝트 생성 후 URL/anon key/service role key를 .env에 넣어주시면 이어서 진행됩니다."
+      "status": "done",
+      "note": "Supabase 프로젝트 생성은 사용자의 Supabase 계정이 필요한 수동 작업입니다. 프로젝트 생성 후 URL/anon key/service role key를 .env에 넣어주시면 이어서 진행됩니다. | 완료 근거: Supabase 프로젝트(devJJinho's Project, ref dvturgcufzzpnuvwdgnv, ap-northeast-2)가 이미 생성되어 있었음을 확인. 브라우저 자동화로 SQL Editor에서 supabase/migrations/*.sql 6개를 통합 실행(Success, no rows returned) → Table Editor에서 blocked_events/projects/push_subscriptions/responses/usage_logs 5개 테이블 생성 확인. API Keys 페이지에서 secret key(sb_secret_UccDE...)가 사용자가 제공한 값과 일치함을 확인 후 .env.local에 SUPABASE_URL=https://dvturgcufzzpnuvwdgnv.supabase.co, SUPABASE_SERVICE_ROLE_KEY로 저장(.env.local은 gitignore 대상, 커밋 안 됨)."
     },
     {
       "id": "T-004",
