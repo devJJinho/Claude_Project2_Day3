@@ -11,6 +11,7 @@ import { buildHooksToInstall } from "../src/hook-delegate-template.mjs";
 import { resolveInjectionInput } from "../src/response-resolver.mjs";
 import { isPaneSafeToInterrupt } from "../src/quota-scraper.mjs";
 import { readLocalBacklog } from "../src/backlog-sync.mjs";
+import { isPermissionDialogShowing, isAskUserQuestionDialogShowing } from "../src/tmux-inject.mjs";
 
 let passed = 0;
 function check(name, fn) {
@@ -84,6 +85,24 @@ check("quota-scraper: 플레이스홀더/타이핑 중이면 개입 안전 아�
   assert.equal(isPaneSafeToInterrupt(placeholder), false);
   assert.equal(isPaneSafeToInterrupt(generating), false);
   assert.equal(isPaneSafeToInterrupt(idle), true);
+});
+
+check("tmux-inject: 실제 캡처한 permission 대화상자 텍스트만 '떠 있음'으로 판정", () => {
+  // 2026-09-17 Day_4_Project 라이브 실측 기반 예시(README.md 실측 기록 참고).
+  const realDialog =
+    "❯ 1. Yes\n  2. Yes, and always allow access to /foo...\n  3. Yes, and switch to auto mode\n  4. No\n" +
+    "────────────\nEsc to cancel";
+  const idle = "❯ \n  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents";
+  const autoModeNotificationButNoDialog = "❯ \n  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents"; // 알림은 떴지만 화면상 프롬프트는 없음
+  assert.equal(isPermissionDialogShowing(realDialog), true);
+  assert.equal(isPermissionDialogShowing(idle), false);
+  assert.equal(isPermissionDialogShowing(autoModeNotificationButNoDialog), false);
+});
+check("tmux-inject: 실제 캡처한 AskUserQuestion 대화상자 텍스트만 '떠 있음'으로 판정", () => {
+  const realDialog = "❯ 1. 파란색\n  2. 초록색\nEnter to select · ↑/↓ to navigate · Esc to cancel";
+  const idle = "❯ \n  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents";
+  assert.equal(isAskUserQuestionDialogShowing(realDialog), true);
+  assert.equal(isAskUserQuestionDialogShowing(idle), false);
 });
 
 check("backlog-sync: 이 프로젝트 자신의 실제 backlog.json을 읽을 수 있음", () => {

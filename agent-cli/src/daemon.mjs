@@ -9,7 +9,7 @@
 import { findProjectByLocalPath } from "./config.mjs";
 import { runBootSequence, formatBootSequenceReport } from "./boot-sequence.mjs";
 import { startResponsePolling } from "./responses-poller.mjs";
-import { injectAskUserQuestionAnswer, injectPermissionDecision } from "./tmux-inject.mjs";
+import { injectAskUserQuestionAnswer, injectPermissionDecision, DialogNotShowingError } from "./tmux-inject.mjs";
 import { syncUsageForProject } from "./usage-logs.mjs";
 import { syncBacklogForProject } from "./backlog-sync.mjs";
 import { syncQuotaForProject } from "./quota-sync.mjs";
@@ -22,16 +22,27 @@ const BACKLOG_SYNC_INTERVAL_MS = 30 * 1000;
 // 안전 검사로 활성 상태면 건너뛰긴 하지만) usage_logs와 같은 5분 주기로 최대한 드물게 한다.
 const QUOTA_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
+// DialogNotShowingError는 "이미 다른 방식으로 끝난 상태"를 뜻한다(예: auto mode가 자동으로
+// 처리해 대화상자가 사라짐) — 재시도해도 다시 나타날 리 없으므로 여기서 삼켜 워터마크가
+// 전진하게 한다(그렇지 않으면 responses-poller가 5초마다 영원히 재시도하며 로그만 쌓인다).
 async function dispatchResponse(sessionName, projectDir, normalized) {
-  if (normalized.type === "ask_user_question") {
-    injectAskUserQuestionAnswer(sessionName, normalized.optionIndex);
-    return;
+  try {
+    if (normalized.type === "ask_user_question") {
+      injectAskUserQuestionAnswer(sessionName, normalized.optionIndex);
+      return;
+    }
+    if (normalized.type === "permission") {
+      injectPermissionDecision(sessionName, projectDir, normalized.decision);
+      return;
+    }
+    throw new Error(`알 수 없는 응답 종류: ${normalized.type}`);
+  } catch (err) {
+    if (err instanceof DialogNotShowingError) {
+      console.error(`[daemon] ${err.message} — 재시도 없이 건너뜁니다`);
+      return;
+    }
+    throw err;
   }
-  if (normalized.type === "permission") {
-    injectPermissionDecision(sessionName, projectDir, normalized.decision);
-    return;
-  }
-  throw new Error(`알 수 없는 응답 종류: ${normalized.type}`);
 }
 
 function startUsageSyncLoop(projectId, projectDir) {

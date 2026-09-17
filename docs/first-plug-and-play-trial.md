@@ -106,3 +106,47 @@ export SUPABASE_SERVICE_ROLE_KEY=...
 2. **"토큰 사용량을 /status 잔여량으로"**: 기존 입력/출력 토큰 집계(T-028)는 유지하면서, tmux로 실제 Claude Code에 `/status`를 띄워 "이번 세션 %/이번 주 %" 잔여량을 긁어오는 기능 추가(`usage_quota` 테이블). 이 스크래핑은 사용자가 실제로 쓰는 pane에 개입하므로, 생성 중이거나 입력 중이면 건너뛰는 안전장치를 넣었다 — 실제로 사용자가 세션을 쓰는 동안 데몬을 재기동했더니 이 안전장치가 정확히 발동해 건너뛰는 것을 실측 확인했다.
 
 두 기능 모두 Supabase 마이그레이션 적용 → 코드 작성(`npm run verify` + `smoke-test.mjs` 14건 전체 통과, 실제 `next build`로도 재확인) → 커밋/푸시 → Vercel 자동 재배포(Ready) → 데몬 재기동까지 마치고, 실제 배포된 `https://claude-project2-day3.vercel.app/dashboard/backlog`·`/dashboard/usage`에서 스크린샷으로 최종 확인했다.
+
+## 실전 사용 중 발견한 감지 누락 사례 조사 (2026-09-17)
+
+사용자가 `Day_4_Project`에서 실제 개발을 진행하던 중 "확인 필요" 상황이 발생했는데
+대시보드의 "대기 질문·권한" 탭에 뜨지 않는 것을 목격해 조사를 시작했다.
+
+**조사 경로**: Supabase `blocked_events`를 직접 조회 → 해당 프로젝트에 아무 기록도 없음(표시
+버그가 아니라 기록 자체가 안 됨) → tmux 세션의 실제 `claude` 프로세스(PID) 환경변수에
+`SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`가 정상적으로 있음을 확인 → `PATH`에도
+`claudebridge`가 설치된 `/opt/homebrew/bin`이 포함되어 있음을 확인 → 두 가설 모두 기각.
+
+**실측 진단**: `stdin-json.mjs`에 `CLAUDEBRIDGE_HOOK_DEBUG` 임시 진단 로그를 추가하고,
+실제 세션에서 `AskUserQuestion`을 직접 유발시켜 Claude Code가 훅에 실제로 보내는 원본
+stdin을 그대로 캡처했다:
+- PreToolUse(AskUserQuestion) payload는 가정과 거의 일치(`tool_input.questions[0].{question,
+  header, options:[{label,description}]}`) — 이 경로는 실제로 정상 동작했다(주입까지 확인:
+  "파란색" 선택 → Claude Code 화면에 그대로 반영됨).
+- Notification(permission) payload의 `message`는 가정했던 `"Claude needs your permission to
+  use <Tool>"`가 아니라 그냥 **`"Claude needs your permission"`**이었다(도구 이름 없음) — 다만
+  이건 크래시로 이어지지 않고 기존 코드가 이미 `tool: "unknown"`으로 정상 처리한다(README의
+  "알려진 한계"대로).
+
+**진짜 원인은 따로 있었다 — auto mode에서 대화상자가 이미 사라진 뒤 응답이 주입됨**: 두
+이벤트 모두 실제로는 Supabase에 정상 기록됐고(`status: pending`), 사용자가 대시보드에서
+직접 응답한 것도 확인됐다(`responses` 테이블에 `responded_by`로 실제 이메일 기록). 문제는
+`permission_mode: "auto"`(자동 진행 모드)인 세션에서는 Permission Notification 훅은 뜨지만
+화면상 실제 대화형 승인/거부 프롬프트 없이 Claude Code가 알아서 넘어가 버린다는 점이다 —
+그 상태에서 웹 응답(`approve`)을 그대로 tmux에 주입하니 이미 사라진 프롬프트가 아니라
+**다음 자유 입력줄에 숫자 "1"이 그대로 타이핑**되어 Claude가 엉뚱한 텍스트로 받아들이는
+것을 실측으로 확인했다(`⏺ "1"이 어떤 맥락인지 명확하지 않습니다...`).
+
+즉 사용자가 원래 보고한 "감지 자체가 안 된다"는 재현되지 않았다(이 라이브 테스트 시점
+기준으로는 감지·기록·표시·응답까지 전부 정상 동작) — 대신 이번 조사로 **더 근본적인 위험**
+(대화상자가 없는데 키를 주입해 세션을 오염시키는 문제)을 실측으로 새로 발견했다.
+
+**수정**: `tmux-inject.mjs`에 `isPermissionDialogShowing`/`isAskUserQuestionDialogShowing`을
+추가해, 주입 직전에 pane을 캡처하고 실제로 그 대화상자가 화면에 떠 있는지 확인한다. 없으면
+`DialogNotShowingError`를 던져 아무 키도 보내지 않는다. `daemon.mjs`의 `dispatchResponse`는
+이 에러를 "이미 다른 방식으로 끝난 상태"로 간주해 조용히 넘어가고(재시도하지 않음 — 다시
+나타날 리 없는 대화상자를 5초마다 영원히 재시도하는 것을 방지), 그 외 에러는 그대로
+던져 기존 at-least-once 재시도 정책을 유지한다. `smoke-test.mjs`에 실측 캡처 텍스트 기반
+테스트 2건을 추가해 총 16건 전체 통과 확인, `npm run verify` + `next build` 재확인 완료.
+진단용 임시 로그(`CLAUDEBRIDGE_HOOK_DEBUG`)는 기본값을 꺼짐으로 되돌리고 캡처된 로그
+파일은 삭제했다(민감한 tool_input 내용이 평소에 디스크에 남지 않도록).
