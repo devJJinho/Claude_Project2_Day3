@@ -212,12 +212,13 @@
       "title": "tmux send-keys로 Permission 승인/거부 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-018",
         "T-019",
         "T-046"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectPermissionDecision — 호출마다 checkStage1GuardActive를 재확인해 안전 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐(개발요청서.md I 항목 핵심 요구사항). 게이트 미통과 프로젝트에 대해 실제로 예외 발생을 실측 확인. dep T-018/T-046이 blocked라 doing/done 전환 불가, tmux 미설치로 게이트 통과 시의 실제 send-keys는 미검증."
     },
     {
       "id": "T-022",
