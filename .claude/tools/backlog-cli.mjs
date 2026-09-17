@@ -11,9 +11,13 @@ import { hashOf, validateBacklog } from "./backlog-schema.mjs";
 import { cmdList, cmdShow, cmdReady } from "./backlog-queries.mjs";
 import { cmdAdd, cmdSetStatus, cmdSetDeps, cmdInit } from "./backlog-mutations.mjs";
 import { CliError } from "./backlog-errors.mjs";
+import { getSharedProjectRoot } from "./worktree-shared-root.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = path.resolve(SCRIPT_DIR, "..", "..");
+// git worktree 안에서 실행 중이면(병렬 서브에이전트 등) 자기 worktree가 아니라 메인
+// worktree의 backlog.json을 기본 대상으로 삼는다 — .claude/rules/parallel-execution.md 참고.
+// --file로 명시하면 항상 그 값이 우선한다(테스트 격리 등).
+const PROJECT_ROOT = getSharedProjectRoot(path.resolve(SCRIPT_DIR, "..", ".."));
 const DEFAULT_BACKLOG_PATH = path.join(PROJECT_ROOT, "backlog.json");
 
 function parseArgs(argv) {
@@ -73,7 +77,8 @@ function usage() {
     '  set-status <id> <새 상태> [--evidence "<완료 근거>"] [--note "<메모>"] [--if-hash <hash>]',
     '  set-deps <id> --deps id1,id2 (없애려면 --deps "") [--if-hash <hash>]',
     "",
-    "공통: --file <path>  (기본: 프로젝트의 backlog.json)",
+    "공통: --file <path>  (기본: 프로젝트의 backlog.json — git worktree 안이면 메인 worktree의",
+    "                      backlog.json을 자동으로 공유한다. parallel-execution.md 참고)",
   ].join("\n");
 }
 

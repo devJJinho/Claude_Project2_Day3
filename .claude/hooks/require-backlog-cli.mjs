@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { getSharedProjectRoot } from "../tools/worktree-shared-root.mjs";
 
 // NFC로 정규화: macOS는 한글 등이 포함된 경로를 파일시스템에서 NFD(분해형)로 돌려주는데,
 // 소스 코드의 문자열 리터럴은 NFC(조합형)라 정규화 없이 비교하면 육안상 같은 경로도
@@ -26,7 +27,10 @@ function normPath(p) {
 }
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = normPath(path.resolve(SCRIPT_DIR, "..", ".."));
+// backlog-cli.mjs와 동일한 공유 루트 해석 — git worktree 안에서는 이 훅도 메인 worktree의
+// backlog.json을 "보호 대상"으로 본다(그래야 CLI가 실제로 쓰는 파일과 훅이 지키는 파일이
+// 항상 일치한다). .claude/rules/parallel-execution.md 참고.
+const PROJECT_ROOT = getSharedProjectRoot(normPath(path.resolve(SCRIPT_DIR, "..", "..")));
 const DEFAULT_TARGET = path.join(PROJECT_ROOT, "backlog.json");
 // 테스트 시 격리된 사본을 대상으로 지정하기 위한 오버라이드. 운영 설정(settings.json)에는
 // 이 환경변수를 심지 않으므로 평소에는 항상 실제 프로젝트의 backlog.json을 가리킨다.

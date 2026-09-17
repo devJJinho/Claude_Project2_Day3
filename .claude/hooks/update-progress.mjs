@@ -4,8 +4,12 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { getSharedProjectRoot } from "../tools/worktree-shared-root.mjs";
 
-const projectRoot = process.cwd();
+// git worktree 안에서 이 Stop 훅이 돌면(병렬 서브에이전트 세션), 자기 worktree가 아니라
+// backlog-cli.mjs가 실제로 쓰는 메인 worktree의 backlog.json을 읽어 그 PROGRESS.md를 갱신한다
+// — 그래야 이 worktree에서 만든 최신 상태가 반영된 보고서가 된다. .claude/rules/parallel-execution.md 참고.
+const projectRoot = getSharedProjectRoot(process.cwd());
 const backlogPath = path.join(projectRoot, "backlog.json");
 const progressPath = path.join(projectRoot, "PROGRESS.md");
 
