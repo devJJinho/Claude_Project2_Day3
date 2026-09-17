@@ -77,7 +77,7 @@ T-039~T-043(전역 CLI 패키지화, 등록 API, login/init 커맨드, 위임형
 
 `.claude/rules/`에 아래 파일들이 있고, Claude Code가 세션 시작 시 이 CLAUDE.md와 같은 우선순위로 자동 로드한다:
 
-- `parallel-execution.md` — 리뷰 병렬 실행 방식
+- `parallel-execution.md` — git worktree 병렬 실행 절차, backlog.json 공유(브랜치 분리 금지), done은 merge 후 메인에서만 확정
 - `backlog-ownership.md` — backlog.json 직접 접근 금지, CLI 사용 원칙
 - `status-transition.md` — 상태 전이 규칙(doing/done 진입 시 deps 검증 등)
 - `commit-cadence.md` — 커밋 시점 규칙

@@ -64,3 +64,28 @@ node .claude/tools/backlog-cli.mjs list   # 현재 작업 상태
 ```
 
 로컬 에이전트/CLI 자체 개발은 `agent-cli/README.md` 참고.
+
+## 6. Claude Code로 이 저장소를 병렬(git worktree) 개발할 때
+
+**이 규칙은 `.claude/` 환경설정에 포함돼 있어서, 이 프로젝트를 통째로 다른 프로젝트에 복사해도
+그대로 따라간다** — 새 프로젝트에서 Claude Code 세션이 시작될 때 `CLAUDE.md`와 함께 자동으로
+로드되는 `.claude/rules/parallel-execution.md`가 전체 내용을 담고 있다. 요약:
+
+- **worktree는 프로젝트 디렉터리 안쪽**(`.worktrees/<name>`)에 만든다 — 바깥(형제 디렉터리)에
+  만들면 샌드박스가 그 경로 접근을 막아 서브에이전트가 작업할 수 없다.
+- **backlog.json은 브랜치별로 분리하지 않는다**: `.claude/tools/worktree-shared-root.mjs`가
+  `git rev-parse --git-common-dir`로 지금 linked worktree 안인지 자동 감지해서, 모든
+  worktree가 항상 메인 worktree의 backlog.json 하나만 공유하게 만든다. 그래서 병렬로 작업
+  중인 진행 상황을 merge 전에도 실시간으로 볼 수 있고, 브랜치가 그 파일을 아예 건드리지
+  않으므로 나중에 merge할 때도 절대 충돌하지 않는다.
+- **단, `done` 전환은 메인 worktree에서만 허용된다**: worktree(브랜치) 안에서 `doing`/
+  `blocked`/`needs_info`는 자유롭게 공유해도 안전하지만, `done`은 "그 코드가 main에 실제로
+  있다"는 주장이라 merge 전에는 참이 아닐 수 있다 — CLI가 이를 감지해 linked worktree
+  안에서의 `set-status <id> done`을 거부한다. 실제 완료 확정은 오케스트레이터가 브랜치를
+  main에 merge한 뒤에 한다.
+- **서브에이전트는 사람 응답을 기다리며 블로킹하지 않는다**: 애매한 지점을 만나면 즉시
+  `needs_info`로 (공유) backlog에 기록하고 다음 작업으로 넘어간다 — 이 harness에는 실행 중인
+  서브에이전트가 부모에게 능동적으로 알리는 채널이 없기 때문에, "막힘" 자체를 항상 관찰
+  가능한 backlog 상태로 바꿔두는 것이 유일한 가시성 확보 방법이다.
+
+자세한 근거·검증 기록은 `.claude/rules/parallel-execution.md` 원문 참고.
