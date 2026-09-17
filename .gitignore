@@ -1,5 +1,6 @@
 node_modules/
 .backlog-backups/
+.worktrees/
 .claude/skills/find-skills
 .claude/.checkpoint-state.json
 .vscode/
