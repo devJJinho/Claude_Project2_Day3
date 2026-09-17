@@ -609,3 +609,67 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* 백로그 페이지(app/dashboard/backlog) — 상태별 색상은 K 항목 톤(퍼플 강조)에 맞춰
+   todo=회색/doing=블루/done=그린/blocked=오렌지/needs_info=퍼플로 구분한다. */
+.status-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--text-muted, #9ca3af);
+}
+
+.status-pill--todo {
+  background: #9ca3af;
+}
+.status-pill--doing {
+  background: var(--blue);
+}
+.status-pill--done {
+  background: var(--green);
+}
+.status-pill--blocked {
+  background: var(--orange);
+}
+.status-pill--needs_info {
+  background: var(--purple);
+}
+
+.status-bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 4px 0 18px;
+  background: #eee;
+}
+
+.status-bar-seg {
+  height: 100%;
+}
+.status-bar-seg--todo {
+  background: #9ca3af;
+}
+.status-bar-seg--doing {
+  background: var(--blue);
+}
+.status-bar-seg--done {
+  background: var(--green);
+}
+.status-bar-seg--blocked {
+  background: var(--orange);
+}
+.status-bar-seg--needs_info {
+  background: var(--purple);
+}

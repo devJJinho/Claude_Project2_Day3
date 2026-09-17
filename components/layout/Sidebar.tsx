@@ -9,6 +9,7 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "대시보드" },
   { href: "/dashboard/pending", label: "대기 질문·권한" },
+  { href: "/dashboard/backlog", label: "백로그" },
   { href: "/dashboard/usage", label: "토큰 사용량" },
   { href: "/dashboard/settings", label: "설정" },
 ];

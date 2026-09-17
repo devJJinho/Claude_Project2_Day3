@@ -1,4 +1,5 @@
 import { getUsageSummary } from "@/lib/db/usage";
+import { getQuotaByProject } from "@/lib/db/quota";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { ClockIcon, CheckIcon } from "@/components/dashboard/icons";
 
@@ -6,8 +7,10 @@ export const dynamic = "force-dynamic";
 
 // T-028: 토큰 사용량 뷰. usage_logs가 D 항목(30일 TTL)에 따라 항상 최근 30일치만 남으므로
 // 전체 합계를 내면 그대로 "최근 30일 사용량"이 된다.
+// 2026-09-17 사용자 요청: 여기에 더해 `/status` 화면의 "이번 세션/이번 주 사용률(%)"도
+// 프로젝트별로 같이 보여준다(기존 입력/출력 토큰 집계는 그대로 유지 — 대체가 아니라 추가).
 export default async function UsagePage() {
-  const usage = await getUsageSummary();
+  const [usage, quotas] = await Promise.all([getUsageSummary(), getQuotaByProject()]);
 
   return (
     <div className="page">
@@ -18,6 +21,40 @@ export default async function UsagePage() {
         <StatCard label="입력 토큰 합계" value={usage.totalInputTokens.toLocaleString("ko-KR")} color="blue" icon={<ClockIcon />} />
         <StatCard label="출력 토큰 합계" value={usage.totalOutputTokens.toLocaleString("ko-KR")} color="purple" icon={<CheckIcon />} />
       </section>
+
+      <div className="card">
+        <h2 className="card-title">/status 잔여량 (프로젝트별)</h2>
+        {quotas.length === 0 ? (
+          <p className="empty-state">
+            아직 동기화된 값이 없습니다. <code>claudebridge run</code>이 실행 중이고, 세션이 유휴 상태일 때(생성 중이거나 입력 중이 아닐 때)까지 기다리면 최대 5분 내로 채워집니다.
+          </p>
+        ) : (
+          <table className="usage-table">
+            <thead>
+              <tr>
+                <th>프로젝트</th>
+                <th>이번 세션</th>
+                <th>이번 주(전체 모델)</th>
+                <th>마지막 확인</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotas.map((q) => (
+                <tr key={q.projectId}>
+                  <td>{q.name}</td>
+                  <td>
+                    {q.sessionPercentUsed}% used · Resets {q.sessionResetsAt}
+                  </td>
+                  <td>
+                    {q.weekPercentUsed}% used · Resets {q.weekResetsAt}
+                  </td>
+                  <td>{new Date(q.updatedAt).toLocaleString("ko-KR")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       <div className="card">
         <h2 className="card-title">프로젝트별 사용량</h2>

@@ -11,8 +11,16 @@ import { runBootSequence, formatBootSequenceReport } from "./boot-sequence.mjs";
 import { startResponsePolling } from "./responses-poller.mjs";
 import { injectAskUserQuestionAnswer, injectPermissionDecision } from "./tmux-inject.mjs";
 import { syncUsageForProject } from "./usage-logs.mjs";
+import { syncBacklogForProject } from "./backlog-sync.mjs";
+import { syncQuotaForProject } from "./quota-sync.mjs";
 
 const USAGE_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+// backlog.json은 로컬 디스크 읽기 + upsert 하나뿐이라 가볍다 — 개발 중에는 자주 바뀌므로
+// usage_logs보다 훨씬 짧은 주기로 둔다(사용자 요청 2026-09-17: 웹에서 실제 상태를 보고 싶어함).
+const BACKLOG_SYNC_INTERVAL_MS = 30 * 1000;
+// /status 스크래핑은 사용자가 실제로 쓰고 있는 tmux pane에 개입하므로(quota-scraper.mjs의
+// 안전 검사로 활성 상태면 건너뛰긴 하지만) usage_logs와 같은 5분 주기로 최대한 드물게 한다.
+const QUOTA_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 async function dispatchResponse(sessionName, projectDir, normalized) {
   if (normalized.type === "ask_user_question") {
@@ -40,6 +48,35 @@ function startUsageSyncLoop(projectId, projectDir) {
   return () => clearInterval(timer);
 }
 
+function startBacklogSyncLoop(projectId, projectDir) {
+  const tick = async () => {
+    try {
+      const r = await syncBacklogForProject(projectId, projectDir);
+      if (r.synced) console.error(`[daemon] backlog.json 동기화 완료`);
+    } catch (err) {
+      console.error(`[daemon] backlog 동기화 실패: ${err.message}`);
+    }
+  };
+  tick();
+  const timer = setInterval(tick, BACKLOG_SYNC_INTERVAL_MS);
+  return () => clearInterval(timer);
+}
+
+function startQuotaSyncLoop(projectId, sessionName) {
+  const tick = async () => {
+    try {
+      const r = await syncQuotaForProject(projectId, sessionName);
+      if (r.synced) console.error(`[daemon] usage_quota(/status) 동기화 완료`);
+      else console.error(`[daemon] usage_quota 동기화 건너뜀: ${r.reason}`);
+    } catch (err) {
+      console.error(`[daemon] usage_quota 동기화 실패: ${err.message}`);
+    }
+  };
+  tick();
+  const timer = setInterval(tick, QUOTA_SYNC_INTERVAL_MS);
+  return () => clearInterval(timer);
+}
+
 /**
  * @param {{projectDir?: string}} opts
  */
@@ -59,12 +96,16 @@ export async function runDaemon(opts = {}) {
   }
 
   const stopUsageSync = startUsageSyncLoop(projectId, projectDir);
+  const stopBacklogSync = startBacklogSyncLoop(projectId, projectDir);
+  const stopQuotaSync = startQuotaSyncLoop(projectId, sessionName);
   const stopPolling = startResponsePolling(projectId, (response) => dispatchResponse(sessionName, projectDir, response));
 
   const shutdown = () => {
     console.log("\n[daemon] 종료 신호 수신 — 정리 중...");
     stopPolling();
     stopUsageSync();
+    stopBacklogSync();
+    stopQuotaSync();
     process.exit(0);
   };
   process.on("SIGINT", shutdown);

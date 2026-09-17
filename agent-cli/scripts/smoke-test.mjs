@@ -9,6 +9,8 @@ import { collectUsageForProject } from "../src/log-parser.mjs";
 import { mergeHook } from "../src/settings-writer.mjs";
 import { buildHooksToInstall } from "../src/hook-delegate-template.mjs";
 import { resolveInjectionInput } from "../src/response-resolver.mjs";
+import { isPaneSafeToInterrupt } from "../src/quota-scraper.mjs";
+import { readLocalBacklog } from "../src/backlog-sync.mjs";
 
 let passed = 0;
 function check(name, fn) {
@@ -73,6 +75,24 @@ check("log-parser: 실제 ~/.claude/projects 로그에서 usage 레코드 추출
   assert.ok(usageRecords.length > 0, "실제 세션 로그에서 usage 레코드를 하나도 못 찾음");
   assert.ok(usageRecords[0].model, "model 필드 누락");
   assert.ok(typeof usageRecords[0].inputTokens === "number");
+});
+
+check("quota-scraper: 플레이스홀더/타이핑 중이면 개입 안전 아님으로 판정", () => {
+  const placeholder = "❯ [⧉ In PROGRESS.md] Try \"create a util logging.py that...\"\n  ⏵⏵ auto mode on";
+  const generating = "❯ \n  ⏵⏵ auto mode on (shift+tab to cycle) · esc to interrupt · ← for agents";
+  const idle = "❯ \n  ⏵⏵ auto mode on (shift+tab to cycle) · ← for agents";
+  assert.equal(isPaneSafeToInterrupt(placeholder), false);
+  assert.equal(isPaneSafeToInterrupt(generating), false);
+  assert.equal(isPaneSafeToInterrupt(idle), true);
+});
+
+check("backlog-sync: 이 프로젝트 자신의 실제 backlog.json을 읽을 수 있음", () => {
+  const parsed = readLocalBacklog(
+    "/Users/jinho/Documents/01_Personal🚨/11_SDC/04_Claude_Vibe/Day_4_SDC_Project"
+  );
+  assert.ok(parsed, "backlog.json을 못 읽음");
+  assert.equal(parsed.project, "ClaudeBridge");
+  assert.ok(parsed.tasks.length > 40, "태스크 수가 예상보다 적음");
 });
 
 console.log(`\n총 ${passed}개 통과 (usage 레코드 ${usageRecords.length}건 실측)`);

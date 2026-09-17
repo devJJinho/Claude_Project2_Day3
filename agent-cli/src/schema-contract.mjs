@@ -13,6 +13,8 @@ export const TABLES = Object.freeze({
   RESPONSES: "responses",
   USAGE_LOGS: "usage_logs",
   PUSH_SUBSCRIPTIONS: "push_subscriptions",
+  USAGE_QUOTA: "usage_quota",
+  BACKLOG_SNAPSHOT: "project_backlog_snapshot",
 });
 
 // projects: { project_id (PK, "clb_"+uuid20자, POST /api/projects가 발급), name, client_ref, created_at }
@@ -42,6 +44,16 @@ export const TABLES = Object.freeze({
 
 // push_subscriptions: { id, user_email, endpoint (unique), p256dh, auth, created_at }
 //   로컬 에이전트(T-033)는 이 테이블을 읽기만 한다.
+
+// usage_quota: { project_id (PK), session_percent_used, session_resets_at, week_percent_used,
+//   week_resets_at, updated_at } — /status 화면(Usage 탭)을 tmux로 스크래핑한 최신 값 1건
+//   (사용자 요청 2026-09-17: "토큰 사용량은 /status 조회했을 때 보이는 잔여량"). upsert 전용
+//   (project_id가 PK라 매번 덮어쓴다).
+
+// project_backlog_snapshot: { project_id (PK), project_name, source_hash, tasks (jsonb),
+//   synced_at } — 등록된 프로젝트의 로컬 backlog.json 전체 스냅샷(사용자 요청 2026-09-17:
+//   "backlog.json 파일의 내용이 웹에서 보이지 않는다"). tasks는 backlog.json의 tasks 배열을
+//   그대로 담는다(가공 없이). upsert 전용.
 
 export function assertKnownTable(name) {
   if (!Object.values(TABLES).includes(name)) {

@@ -49,3 +49,13 @@ export function getLastUsageSyncedAt(projectId) {
 export function setLastUsageSyncedAt(projectId, iso) {
   writeState(projectId, { ...readState(projectId), lastUsageSyncedAt: iso });
 }
+
+// backlog-sync.mjs — 로컬 backlog.json 내용이 마지막으로 올린 것과 같으면(해시 동일) 다시
+// 업로드하지 않기 위한 워터마크. null이면 "한 번도 안 올림".
+export function getLastBacklogHash(projectId) {
+  return readState(projectId).lastBacklogHash || null;
+}
+
+export function setLastBacklogHash(projectId, hash) {
+  writeState(projectId, { ...readState(projectId), lastBacklogHash: hash });
+}

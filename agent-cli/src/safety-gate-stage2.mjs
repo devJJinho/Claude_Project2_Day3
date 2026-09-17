@@ -24,9 +24,15 @@ function checkClaudeProcessInSession(sessionName) {
     return { ok: false, reason: `세션(${sessionName}) 상태를 조회할 수 없습니다.` };
   }
   const commands = r.stdout.split("\n").map((s) => s.trim()).filter(Boolean);
-  // "claude" CLI(node로 실행되는 경우도 있음)를 실행 중인 pane이 하나라도 있으면 통과로 본다.
-  // 정확한 프로세스명은 설치 방식에 따라 다를 수 있어 claude/node 둘 다 허용하는 휴리스틱이다.
-  const looksLikeClaude = commands.some((c) => /claude|node/i.test(c));
+  // 2026-09-17 실측(Day_4_Project 첫 plug-and-play 적용): 실제로 떠 있는 Claude Code
+  // 세션에서 pane_current_command가 "claude"도 "node"도 아니라 그냥 버전 문자열
+  // (예: "2.1.274")로 나왔다 — Claude Code가 pty 상에서 자기 프로세스 타이틀을 그렇게
+  // 바꾸는 것으로 보인다. 그래서 "claude/node 문자열 포함"이 아니라 "아무 것도 안 하는
+  // 셸로 돌아가지 않았다"는 역방향 휴리스틱으로 바꾼다 — Claude Code가 크래시해서 셸
+  // 프롬프트로 돌아갔다면 pane_current_command가 zsh/bash/sh/fish 중 하나가 되므로 그
+  // 경우만 "없음"으로 판정한다.
+  const IDLE_SHELL_NAMES = new Set(["zsh", "bash", "sh", "fish", "csh", "tcsh"]);
+  const looksLikeClaude = commands.some((c) => !IDLE_SHELL_NAMES.has(c.toLowerCase()));
   if (!looksLikeClaude) {
     return {
       ok: false,
