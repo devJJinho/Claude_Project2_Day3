@@ -100,8 +100,8 @@
       "title": "구글 OAuth 앱 등록 및 클라이언트 ID/시크릿 발급",
       "category": "auth",
       "source_section": "C",
-      "status": "needs_info",
-      "note": "구글 OAuth 앱 등록은 사용자의 Google Cloud Console 계정이 필요한 수동 작업입니다. 클라이언트 ID/시크릿 발급 후 .env에 넣어주시면 로그인 연동을 마무리할 수 있습니다."
+      "status": "done",
+      "note": "구글 OAuth 앱 등록은 사용자의 Google Cloud Console 계정이 필요한 수동 작업입니다. 클라이언트 ID/시크릿 발급 후 .env에 넣어주시면 로그인 연동을 마무리할 수 있습니다. | 완료 근거: Google Cloud 프로젝트(claudebridge-508904) 생성 → OAuth 동의 화면(Google Auth Platform, External, 앱 이름 ClaudeBridge, 지원 이메일 jhjeong710@gmail.com) 구성 → 테스트 사용자에 jhjeong710@gmail.com 등록(1/100 확인) → OAuth 클라이언트 ID(Web application, 리디렉션 URI http://localhost:3000/api/auth/callback/google) 생성 완료. 클라이언트 ID/시크릿을 .env.local에 저장(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET). 브라우저 자동화로 전 과정 수행."
     },
     {
       "id": "T-011",
