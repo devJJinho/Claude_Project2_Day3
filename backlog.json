@@ -345,11 +345,12 @@
       "title": "막힌 이벤트 발생 시 웹 푸시 발송 로직 작성",
       "category": "notify",
       "source_section": "F",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-017",
         "T-032"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/push-sender.mjs(web-push 라이브러리로 VAPID 발송, push_subscriptions 조회 후 sendPushForBlockedEvent가 즉시 발송). dep T-017(blocked)·T-032(웹 푸시 구독 등록, web-app 트랙) 미완료라 실제 구독 대상 발송 검증 불가. VAPID 키/구독 데이터가 없어 라이브 발송 테스트 불가."
     },
     {
       "id": "T-034",
