@@ -25,6 +25,7 @@ export const SOURCE_DIRS = [
   "agent-cli/bin",
   "agent-cli/src",
   "agent-cli/scripts",
+  "scripts",
 ];
 export const SOURCE_EXTENSIONS = [".mjs", ".js", ".ts", ".tsx"];
 
