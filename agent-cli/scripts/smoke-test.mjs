@@ -37,8 +37,10 @@ check("key-mapping: 문자열/자유 텍스트 거부", () => {
   assert.throws(() => mapAskUserQuestionAnswer("rm -rf /"), UnrecognizedResponseError);
 });
 check("key-mapping: Permission 화이트리스트만 허용(approve/deny)", () => {
+  // 2026-09-17 실측: 옵션 번호(2/3/4)는 프롬프트 구성에 따라 달라져 deny를 숫자로 고정하면
+  // "항상 허용" 같은 다른 옵션을 잘못 누를 수 있다 — deny는 옵션 구성과 무관한 Esc로 고정한다.
   assert.deepEqual(mapPermissionDecision("approve"), ["1", "Enter"]);
-  assert.deepEqual(mapPermissionDecision("deny"), ["2", "Enter"]);
+  assert.deepEqual(mapPermissionDecision("deny"), ["Escape"]);
   assert.throws(() => mapPermissionDecision("allow_always"), UnrecognizedResponseError);
 });
 

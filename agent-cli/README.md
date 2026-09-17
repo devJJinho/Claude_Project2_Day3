@@ -77,35 +77,37 @@ merge 이후 `git show origin/feature/web-app:<path>`로 실제 소스(마이그
 - `POST /api/projects` 계약은 실제 `app/api/projects/route.ts` 로직을 그대로 재현한 목
   서버로 신규 등록/멱등 재사용/401 실패 3가지 시나리오를 확인(T-042).
 
-## 확인이 필요한 가정(여전히 남음 — 실제 Claude Code TUI를 tmux로 붙여 검증 필요)
+## 실측 기록 (2026-09-17, tmux 설치 후 실제 Claude Code v2.1.274를 tmux 위에 띄워 라이브 검증)
 
-이 환경은 비대화형 백그라운드 세션이라 tmux 위에서 실제 Claude Code를 띄워 AskUserQuestion/
-Permission 프롬프트 화면을 눈으로 확인할 방법이 없었다(이 머신에는 tmux 자체도 설치돼 있지
-않다 — `brew list tmux` 확인). 아래는 web-app과의 계약과 무관하게 **Claude Code 자체의
-동작**에 대한 가정이며, 실제 화면으로 검증되면 해당 파일만 고치면 된다:
+`tmux-session.mjs`의 실제 함수(`ensureSession`/`startClaudeCode`)로 세션을 만들고, 그 안에서
+실제 Claude Code를 실행해 AskUserQuestion과 Permission 프롬프트를 직접 띄운 뒤,
+`tmux-inject.mjs`의 실제 함수로 응답을 주입해봤다(scratchpad 격리 디렉터리 사용).
 
-1. **AskUserQuestion tool_input 스키마** (`src/ask-question-hook.mjs`의 `extractPayload`):
-   `{ questions: [{ question, header, options: [{label, description}] }] }` 형태로 가정.
-   다중 질문(questions.length > 1) 동시 응답은 1차 구현 범위 밖 — 첫 질문만 처리한다.
-2. **Notification 훅으로 Permission 프롬프트를 감지할 수 있다는 가정**
-   (`src/permission-hook.mjs`): 범용 `Notification` 훅의 메시지 텍스트에서 "permission"/
-   "권한" 문구와 도구 이름만 정규식으로 추출한다 — `command`/`description`은 Notification
-   메시지만으로는 알 수 없어 빈 값으로 남는다(알려진 한계, 파일 상단 주석 참고).
-3. **선택지/승인 응답의 정확한 키 입력** (`src/key-mapping.mjs`): AskUserQuestion은 "숫자
-   입력 후 Enter", Permission(approve/deny)은 "1=approve/2=deny 후 Enter"로 가정했다.
-   Claude Code의 실제 권한 프롬프트가 3옵션(예/항상 예/아니오)이면 deny의 위치가 다를 수
-   있다. 화이트리스트 검증 구조(모르는 값은 예외) 자체는 이 가정과 무관하게 유효하다.
-4. **tmux 세션 재사용 정책**(개발요청서.md 4장 미결 질문, 확정): `claudebridge init`은 같은
-   project_id의 세션이 이미 있으면 재사용하고, 새로 만들었을 때만 Claude Code를 자동
-   실행한다(`src/tmux-session.mjs`) — 중복 프로세스 실행을 피하기 위한 결정.
-5. **tmux 자체가 이 개발 환경에 없다**: `tmux-session.mjs`/`tmux-inject.mjs`의 tmux 명령
-   구성(인자 배열 기반, shell 미사용)은 코드 검토·부재 감지(isTmuxAvailable 등)까지만
-   실측했고, 실제 세션 생성·send-keys 성공 여부는 tmux가 설치된 환경(사용자의 실제 macOS)
-   에서 재검증이 필요하다.
+- **AskUserQuestion — 완전히 검증됨(T-036 done 근거)**: 실제 프롬프트는 번호가 매겨진 목록
+  (`1. Yes` / `2. No` / `3. Type something.` + 구분선 아래 `4. Chat about this`)으로 뜨고,
+  `injectAskUserQuestionAnswer(sessionName, 1)`을 실행하자 실제로 옵션 1이 선택되어 Claude
+  Code가 "User answered Claude's questions: → Yes"로 진행을 이어감을 화면으로 직접 확인했다.
+  가정했던 "숫자 입력 후 Enter" 방식이 맞았다.
+- **Permission — 중요한 버그 발견, 코드 수정함**: 실제 Bash 권한 프롬프트는 2개가 아니라
+  **4개 옵션**이었다: `1. Yes` / `2. Yes, and always allow access to <path>...` /
+  `3. Yes, and switch to auto mode` / `4. No`. 즉 예전 코드(`deny → 숫자 "2"`)는 실제로는
+  **"항상 허용"을 눌러버리는 버그**였다 — 옵션 구성(도구·권한 범위에 따라 "always allow" 문구나
+  개수가 달라짐)에 따라 "No"의 번호가 바뀌기 때문에 숫자로 deny를 고정하는 것 자체가
+  근본적으로 안전하지 않다. **수정**: deny는 옵션 번호와 무관하게 항상 동작하는 **Esc**로
+  매핑했다(이 화면 자체가 항상 "Esc to cancel"이라고 명시함). approve는 확인된 대로 `1`
+  그대로 유지.
+- **Permission 실주입은 끝까지 라이브로 못 검증함 — 정책적 이유**: `injectPermissionDecision`을
+  실제로 호출해 이 프롬프트에 응답을 주입하려 하자, **이 세션(오케스트레이터) 자신의 안전
+  분류기가 그 행동 자체를 차단**했다(사유: "Create Unsafe Agents" — 다른 Claude Code
+  인스턴스의 권한 승인을 자동으로 대신 눌러주는 패턴을 위험하다고 판단). 이는 우회하면 안 되는
+  정당한 차단이다 — ClaudeBridge의 실제 운영 방식에서는 이 함수가 **실제 사람이 웹 대시보드에서
+  버튼을 누른 결과로만** 호출되지, 자동화 루프가 스스로 반복 호출하지 않는다. 따라서 이
+  경계선(자동화된 test가 아니라 실제 사람의 클릭으로만 검증 가능)은 설계상 자연스럽다 —
+  T-037은 위 버그 수정을 반영해 `blocked`로 남기고, 최종 검증은 실제 배포된 웹 대시보드에서
+  사람이 직접 승인/거부 버튼을 눌러보는 것으로 완료해야 한다.
 
-## 완료된 작업 (T-013~T-022, T-029~T-031, T-033, T-039, T-041~T-047, 총 22건)
+## 완료된 작업 (T-013~T-036, T-038~T-047, 총 35건)
 
-모두 `done` 처리되었다 — web-app 트랙 merge(커밋 `189b064`) 이후 실제 계약에 맞춰
-재작성하고, 위 목 서버 통합 테스트로 검증했다. 남은 라이브 미검증 항목(tmux 실제 동작,
-Claude Code 훅 payload 정확한 필드명)은 이 파일의 "확인이 필요한 가정"에 모아뒀다 —
-실제 Supabase 프로젝트 생성(`T-003`)과 tmux 설치 후 재검증을 권장한다.
+`done` 처리됨 — web-app 트랙 merge(커밋 `189b064`) 이후 실제 계약에 맞춰 재작성했고, 목 서버
+통합 테스트 + 위 실제 tmux 라이브 검증(AskUserQuestion)으로 확인했다. T-037(Permission E2E)은
+위 사유로 `blocked` — 실제 웹 대시보드에서 사람이 직접 눌러보는 최종 검증만 남았다.

@@ -51,9 +51,9 @@ claudebridge run
 
 ## 4. 알려진 제약 (2026-09-17 기준)
 
-- **tmux 실제 동작 미검증**: 이 저장소를 개발한 머신에 tmux가 설치되어 있지 않아, 실제 Claude Code 화면에 키 입력이 들어가는 것까지는 검증하지 못했다. 사용자의 실제 macOS에 `brew install tmux` 후 재검증 필요(`agent-cli/README.md`의 "확인이 필요한 가정" 참고).
-- **AskUserQuestion/Permission 훅의 정확한 payload 필드명**은 코드 검토 기반 가정이다. 실제 프롬프트로 검증되면 `agent-cli/src/ask-question-hook.mjs`, `agent-cli/src/permission-hook.mjs`만 수정하면 된다.
-- 위 두 항목 때문에 E2E 테스트(개발요청서.md 백로그 T-036/T-037)는 `blocked` 상태로 남아있다 — 1단계 배포(위 1번)를 마치고 tmux를 설치한 뒤 재검증이 필요하다.
+- **AskUserQuestion 응답 주입은 실제 tmux + 실제 Claude Code로 라이브 검증 완료(T-036 done)**: 번호 입력 후 Enter 방식이 실제로 동작함을 화면으로 확인했다.
+- **Permission 응답 주입은 코드는 실측 기반으로 수정됐지만 최종 라이브 검증이 남아있다(T-037 blocked)**: 실제 권한 프롬프트가 예상과 달리 4개 옵션이라 deny 매핑을 숫자 대신 Esc로 고쳤지만, 이 함수를 실제로 호출하는 최종 확인은 자동화된 테스트로 할 수 없었다(에이전트가 다른 Claude Code 인스턴스의 권한 승인을 자동으로 대신 누르는 행위 자체가 안전 정책상 차단됨 — 자세한 내용은 `agent-cli/README.md`의 "실측 기록" 참고). **실제 웹 대시보드에서 사람이 직접 승인/거부 버튼을 눌러보는 것으로 최종 검증해야 한다.**
+- **AskUserQuestion/Permission 훅의 정확한 payload 필드명**은 여전히 코드 검토 기반 가정이다(`agent-cli/src/ask-question-hook.mjs`, `agent-cli/src/permission-hook.mjs`).
 
 ## 5. 로컬 개발
 

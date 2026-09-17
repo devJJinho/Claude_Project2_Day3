@@ -41,10 +41,18 @@ export function mapAskUserQuestionAnswer(optionIndex) {
 }
 
 /**
- * Permission 승인/거부 응답을 tmux 키 시퀀스로 변환한다. Claude Code의 실제 권한 프롬프트가
- * 2개 옵션(예/아니오)인지 3개 옵션(예/항상 예/아니오)인지 라이브 검증 전이라, approve는
- * 첫 번째 옵션(보통 "예" — 숫자 1), deny는 마지막에서 보이는 "아니오"에 가장 흔히 대응하는
- * 값으로 잠정 배정한다(README.md '확인이 필요한 가정' 참고 — 실제 화면 확인 후 조정 필요).
+ * Permission 승인/거부 응답을 tmux 키 시퀀스로 변환한다.
+ *
+ * 2026-09-17 실제 Claude Code(v2.1.274) 권한 프롬프트를 tmux 위에서 라이브로 띄워 확인한 결과
+ * (agent-cli/README.md "실측 기록" 참고), 옵션 개수는 고정이 아니다 — 이번에 뜬 Bash 권한
+ * 프롬프트는 "1. Yes / 2. Yes, and always allow.../ 3. Yes, and switch to auto mode / 4. No"
+ * 4개였다. 즉 deny(="No")가 항상 마지막 옵션은 맞지만 그 번호(2 vs 3 vs 4)는 옵션 구성에 따라
+ * 달라져서, 숫자로 deny를 고정하면 실제로는 "항상 허용"(approve-always) 같은 완전히 다른,
+ * 더 위험한 선택지를 눌러버릴 수 있다 — 실제로 예전 구현(digit "2")이 정확히 이 버그였다.
+ *
+ * 그래서 deny는 옵션 번호에 의존하지 않는 **Esc**로 매핑한다 — 이 화면의 푸터가 항상
+ * "Esc to cancel"이라고 명시하는, 옵션 구성과 무관한 유일한 안정적 취소 방법이다.
+ * approve는 확인된 대로 항상 첫 번째("1. Yes" — 승인 중 가장 보수적인 "이번만 허용")로 둔다.
  * @param {"approve"|"deny"} decision
  * @returns {string[]}
  */
@@ -52,8 +60,8 @@ export function mapPermissionDecision(decision) {
   if (!PERMISSION_DECISIONS.includes(decision)) {
     throw new UnrecognizedResponseError("Permission decision", decision);
   }
-  const digit = { approve: "1", deny: "2" }[decision];
-  return [digit, "Enter"];
+  if (decision === "deny") return ["Escape"];
+  return ["1", "Enter"];
 }
 
 // 자유 텍스트 경로가 코드베이스 어디에도 생기지 않도록, "검증되지 않은 임의 문자열을 그대로

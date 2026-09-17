@@ -396,12 +396,12 @@
       "title": "E2E 테스트: AskUserQuestion 1건 웹 응답→tmux 주입 성공 확인",
       "category": "qa",
       "source_section": "J",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-022",
         "T-026"
       ],
-      "note": "E2E 라이브 검증 불가: 이 개발 머신에 tmux 미설치(brew에도 없음), 실제 Supabase 프로젝트도 아직 없음(T-003 needs_info로 사용자의 수동 계정 생성 대기 중). 코드 경로 자체는 agent-cli 트랙에서 mock 백엔드로 통합 테스트(scripts/integration-test-mock-backend.mjs)까지 확인했으나, 실제 tmux 세션에 실제 키 입력이 들어가는 것까지는 tmux 설치 + 실제 Supabase 프로젝트 생성(T-002/T-003/T-010 완료) 후에만 검증 가능. 사용자가 그 계정들을 만들면 재검증 필요."
+      "note": "E2E 라이브 검증 불가: 이 개발 머신에 tmux 미설치(brew에도 없음), 실제 Supabase 프로젝트도 아직 없음(T-003 needs_info로 사용자의 수동 계정 생성 대기 중). 코드 경로 자체는 agent-cli 트랙에서 mock 백엔드로 통합 테스트(scripts/integration-test-mock-backend.mjs)까지 확인했으나, 실제 tmux 세션에 실제 키 입력이 들어가는 것까지는 tmux 설치 + 실제 Supabase 프로젝트 생성(T-002/T-003/T-010 완료) 후에만 검증 가능. 사용자가 그 계정들을 만들면 재검증 필요. | 완료 근거: 실제 tmux(3.7c)+실제 Claude Code(v2.1.274)를 scratchpad 격리 디렉터리에서 라이브로 띄워 검증(2026-09-17). agent-cli의 실제 함수 사용: ensureSession/startClaudeCode로 세션 생성+Claude Code 실행 → 프롬프트로 실제 AskUserQuestion 유발 → 화면에 번호 목록(1.Yes/2.No/3.Type something) 렌더링 확인 → injectAskUserQuestionAnswer(session,1) 실행 → 화면에 'User answered Claude's questions: → Yes'로 실제 진행됨을 확인. 가정했던 숫자+Enter 방식이 실제로 맞음을 실측 확인."
     },
     {
       "id": "T-037",
@@ -413,7 +413,7 @@
         "T-022",
         "T-027"
       ],
-      "note": "T-036과 동일한 사유(tmux 미설치, 실제 Supabase 프로젝트 없음)로 Permission 승인 tmux 주입 E2E 라이브 검증 불가. 안전 게이트 로직 자체(게이트 미통과 시 예외 발생)는 agent-cli 트랙에서 실측 확인됨. 사용자가 T-002/T-003/T-010 완료 후 재검증 필요."
+      "note": "실제 Permission 프롬프트를 tmux 라이브로 띄워보니 2개가 아니라 4개 옵션(1.Yes/2.Yes+항상허용/3.Yes+auto모드/4.No)이었고, 예전 deny=숫자'2' 매핑이 실제로는 '항상 허용'을 눌러버리는 버그였음을 발견해 수정함(deny는 옵션 번호와 무관한 Esc로 변경, agent-cli/src/key-mapping.mjs). 다만 injectPermissionDecision을 실제로 호출해 이 프롬프트에 주입하는 최종 확인은, 이 오케스트레이터 세션 자체의 안전 분류기가 '다른 Claude Code 인스턴스의 권한 승인을 자동으로 대신 누르는' 패턴을 차단해 자동화 테스트로 완료할 수 없었다(정당한 차단 — ClaudeBridge의 실제 운영에서는 이 함수가 사람이 웹 대시보드에서 버튼을 누른 결과로만 호출됨). 최종 검증은 실제 배포된 웹 대시보드에서 사람이 직접 승인/거부 버튼을 눌러보는 것으로 완료 필요."
     },
     {
       "id": "T-038",
