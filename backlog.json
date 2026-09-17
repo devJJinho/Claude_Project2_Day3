@@ -434,11 +434,12 @@
       "title": "개인 액세스 토큰 발급 및 claudebridge login 커맨드 구현 (머신당 1회 로그인)",
       "category": "auth",
       "source_section": "H",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-011",
         "T-039"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/login-command.mjs — 개인 액세스 토큰 발급 방식을 디바이스 코드 플로우로 결정(README.md에 근거 기술, 개발요청서.md 4장 미결 질문 해소). POST /api/cli/device-code, GET /api/cli/device-code/:code API 계약을 가정. dep T-011(구글 로그인, web-app 트랙) 미완료 + 백엔드 API 자체가 없어 실제 로그인 플로우 검증 불가."
     },
     {
       "id": "T-042",
