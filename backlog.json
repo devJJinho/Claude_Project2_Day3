@@ -378,7 +378,7 @@
         "T-004",
         "T-014"
       ],
-      "note": "완료 근거: 서비스 롤 키 점검: lib/env/server.ts가 'server-only' import로 클라이언트 번들 유입을 빌드타임 차단(grep으로 app/components 어디서도 서버 env import 없음을 확인), 서비스 롤 키는 .env.local(gitignore)에만 존재하고 git 이력에 .env 실값 커밋된 적 없음(git log --all --diff-filter=A로 확인), agent-cli 쪽 서비스 롤 키도 config.mjs가 ~/.claudebridge/config.json에 저장 안 하고 환경변수 전용으로 씀. .gitignore에 .env/.env.*(!.env.example 예외) 등록 확인."
+      "note": "완료 근거: 서비스 롤 키 점검: lib/env/server.ts가 'server-only' import로 클라이언트 번들 유입을 빌드타임 차단(grep으로 app/components 어디서도 서버 env import 없음을 확인), 서비스 롤 키는 .env.local(gitignore)에만 존재하고 git 이력에 .env 실값 커밋된 적 없음(git log --all --diff-filter=A로 확인), agent-cli 쪽 서비스 롤 키도 config.mjs가 ~/.claudebridge/config.json에 저장 안 하고 환경변수 전용으로 씀. .gitignore에 .env/.env.*(!.env.example 예외) 등록 확인. | 완료 근거: 서비스 롤 키 점검: lib/env/server.ts가 'server-only' import로 클라이언트 번들 유입을 빌드타임 차단(grep으로 app/components 어디서도 서버 env import 없음을 확인), 서비스 롤 키는 .env.local(gitignore)에만 존재하고 git 이력에 .env 실값 커밋된 적 없음(git log --all --diff-filter=A로 확인), agent-cli 쪽 서비스 롤 키도 config.mjs가 ~/.claudebridge/config.json에 저장 안 하고 환경변수 전용으로 씀. .gitignore에 .env/.env.*(!.env.example 예외) 등록 확인."
     },
     {
       "id": "T-035",
