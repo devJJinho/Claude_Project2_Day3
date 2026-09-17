@@ -14,11 +14,17 @@ import { CliError } from "./backlog-errors.mjs";
 import { getSharedProjectRoot } from "./worktree-shared-root.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const LOCAL_ROOT = path.resolve(SCRIPT_DIR, "..", "..");
 // git worktree 안에서 실행 중이면(병렬 서브에이전트 등) 자기 worktree가 아니라 메인
 // worktree의 backlog.json을 기본 대상으로 삼는다 — .claude/rules/parallel-execution.md 참고.
 // --file로 명시하면 항상 그 값이 우선한다(테스트 격리 등).
-const PROJECT_ROOT = getSharedProjectRoot(path.resolve(SCRIPT_DIR, "..", ".."));
+const PROJECT_ROOT = getSharedProjectRoot(LOCAL_ROOT);
 const DEFAULT_BACKLOG_PATH = path.join(PROJECT_ROOT, "backlog.json");
+// LOCAL_ROOT !== PROJECT_ROOT라면 지금 linked worktree(메인이 아닌 브랜치) 안에서 실행 중이라는
+// 뜻이다 — 이 경우 실제 코드는 아직 main에 merge되지 않았을 수 있으므로 done 전환을 막는다
+// (backlog-mutations.mjs의 cmdSetStatus). doing/blocked/needs_info는 공유해도 안전하지만
+// done은 "코드가 main에 실제로 존재한다"는 주장이라 merge 전에는 참이 아닐 수 있다.
+const IS_LINKED_WORKTREE = LOCAL_ROOT !== PROJECT_ROOT;
 
 function parseArgs(argv) {
   const args = { _: [] };
@@ -113,7 +119,7 @@ function main() {
     case "add":
       return cmdAdd(args, ctx, filePath);
     case "set-status":
-      return cmdSetStatus(args, ctx, filePath);
+      return cmdSetStatus(args, ctx, filePath, { isLinkedWorktree: IS_LINKED_WORKTREE });
     case "set-deps":
       return cmdSetDeps(args, ctx, filePath);
     default:

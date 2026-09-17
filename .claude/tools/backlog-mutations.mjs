@@ -159,7 +159,7 @@ export function cmdAdd(args, ctx, filePath) {
 
 const DEPS_COMPLETION_STATUSES = new Set(["doing", "done"]);
 
-export function cmdSetStatus(args, ctx, filePath) {
+export function cmdSetStatus(args, ctx, filePath, opts = {}) {
   const [id, newStatus] = args._;
   if (!id || !newStatus) {
     throw new CliError("set-status <id> <새 상태> 형태로 지정하세요.");
@@ -186,6 +186,15 @@ export function cmdSetStatus(args, ctx, filePath) {
   }
 
   if (newStatus === "done") {
+    if (opts.isLinkedWorktree) {
+      throw new CliError(
+        `'${id}'를 이 worktree(브랜치)에서 done으로 바꿀 수 없습니다. backlog.json은 메인 worktree와 ` +
+          `실시간 공유되지만(parallel-execution.md), 이 브랜치의 실제 코드는 main에 merge되기 전까지 ` +
+          `main에는 존재하지 않습니다 — 여기서 done을 허용하면 "코드는 없는데 backlog엔 완료로 표시"되는 ` +
+          `불일치가 생깁니다. 지금은 'doing'까지만 반영하고, 완료 근거는 최종 보고(hand-back)에 남기세요. ` +
+          `실제 done 처리는 이 브랜치가 main에 merge된 뒤 메인 worktree에서 --evidence와 함께 실행합니다.`
+      );
+    }
     if (!args.evidence || args.evidence === true) {
       throw new CliError(
         `'${id}'를 done으로 바꾸려면 --evidence "<완료 근거>"가 필요합니다. ` +
