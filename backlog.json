@@ -15,17 +15,19 @@
       "title": "Vercel 프로젝트 생성 및 GitHub 연동",
       "category": "infra",
       "source_section": "H",
-      "status": "todo",
+      "status": "needs_info",
       "deps": [
         "T-001"
-      ]
+      ],
+      "note": "Vercel 프로젝트 생성·GitHub 연동은 사용자의 Vercel/GitHub 계정 로그인이 필요한 수동 작업입니다. 사용자가 Vercel 대시보드에서 이 GitHub 저장소(devJJinho/Claude_Project2_Day3)를 Import한 뒤 완료 처리해주세요."
     },
     {
       "id": "T-003",
       "title": "Supabase 프로젝트 생성 및 연결 키 발급",
       "category": "infra",
       "source_section": "H",
-      "status": "todo"
+      "status": "needs_info",
+      "note": "Supabase 프로젝트 생성은 사용자의 Supabase 계정이 필요한 수동 작업입니다. 프로젝트 생성 후 URL/anon key/service role key를 .env에 넣어주시면 이어서 진행됩니다."
     },
     {
       "id": "T-004",
@@ -95,7 +97,8 @@
       "title": "구글 OAuth 앱 등록 및 클라이언트 ID/시크릿 발급",
       "category": "auth",
       "source_section": "C",
-      "status": "todo"
+      "status": "needs_info",
+      "note": "구글 OAuth 앱 등록은 사용자의 Google Cloud Console 계정이 필요한 수동 작업입니다. 클라이언트 ID/시크릿 발급 후 .env에 넣어주시면 로그인 연동을 마무리할 수 있습니다."
     },
     {
       "id": "T-011",
