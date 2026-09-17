@@ -16,11 +16,11 @@
       "title": "Vercel 프로젝트 생성 및 GitHub 연동",
       "category": "infra",
       "source_section": "H",
-      "status": "needs_info",
+      "status": "done",
       "deps": [
         "T-001"
       ],
-      "note": "Vercel 프로젝트 생성·GitHub 연동은 사용자의 Vercel/GitHub 계정 로그인이 필요한 수동 작업입니다. 사용자가 Vercel 대시보드에서 이 GitHub 저장소(devJJinho/Claude_Project2_Day3)를 Import한 뒤 완료 처리해주세요."
+      "note": "Vercel 프로젝트 생성·GitHub 연동은 사용자의 Vercel/GitHub 계정 로그인이 필요한 수동 작업입니다. 사용자가 Vercel 대시보드에서 이 GitHub 저장소(devJJinho/Claude_Project2_Day3)를 Import한 뒤 완료 처리해주세요. | 완료 근거: Vercel GitHub App을 devJJinho/Claude_Project2_Day3 저장소 1개로 범위 제한해 설치 → Vercel New Project로 Import → 10개 환경변수 등록 → 최초 배포는 빌드 실패(원인: package.json의 'build' 스크립트가 배포용이 아니라 .claude/tools의 내부 품질검사를 가리켜 next build가 실행 안 됨) → Vercel 프로젝트 설정에서 Build Command를 'npm run build:next'로 오버라이드 → Redeploy 성공(Status: Ready, 46s). https://claude-project2-day3.vercel.app 실접속으로 로그인 페이지 렌더링 확인, 구글 로그인 버튼 클릭 시 계정 선택기까지 정상 도달. 프로덕션 리디렉션 URI를 Google Cloud Console에 추가(propagation 지연으로 실제 로그인 완료는 몇 분 후 재확인 필요)."
     },
     {
       "id": "T-003",
