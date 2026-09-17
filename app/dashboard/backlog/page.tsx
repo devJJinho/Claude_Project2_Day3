@@ -66,20 +66,20 @@ export default async function BacklogPage() {
                 <table className="usage-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>상태</th>
-                      <th>카테고리</th>
+                      <th className="col-nowrap">ID</th>
+                      <th className="col-nowrap">상태</th>
+                      <th className="col-nowrap">카테고리</th>
                       <th>제목</th>
                     </tr>
                   </thead>
                   <tbody>
                     {b.tasks.map((t) => (
                       <tr key={t.id}>
-                        <td>{t.id}</td>
-                        <td>
+                        <td className="col-nowrap">{t.id}</td>
+                        <td className="col-nowrap">
                           <span className={`status-pill status-pill--${t.status}`}>{STATUS_LABEL[t.status] ?? t.status}</span>
                         </td>
-                        <td>{t.category}</td>
+                        <td className="col-nowrap">{t.category}</td>
                         <td>{t.title}</td>
                       </tr>
                     ))}

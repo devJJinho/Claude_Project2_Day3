@@ -573,6 +573,20 @@ code {
   font-size: 12px;
 }
 
+/* 사용자 요청(2026-09-18): ID/상태/카테고리는 화면 폭과 무관하게 항상 한 줄로 표시한다
+   (제목처럼 긴 텍스트는 여전히 줄바꿈 가능 — 이 세 칼럼만 강제로 한 줄 유지). 폭이 부족하면
+   .table-scroll이 가로 스크롤을 제공하므로 잘리지 않는다. */
+.col-nowrap {
+  white-space: nowrap;
+}
+
+/* 표가 폭이 부족할 때 항상 가로 스크롤되게 한다(모바일 전용이 아니라 어떤 화면 폭에서도
+   — 사용자 요청 2026-09-18 "반응형으로 무조건 한 줄에 표시"). */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* --- 설정 페이지 --- */
 .primary-btn {
   border: none;
@@ -640,13 +654,8 @@ code {
     grid-template-columns: 1fr;
   }
 
-  /* 사용자 요청(2026-09-18): 표가 좁은 화면에서 셀 내용이 줄바꿈되던 것을 막고, 대신
-     테이블 전체를 가로 스크롤하게 한다(.table-scroll, 각 테이블을 감싸는 래퍼). */
-  .table-scroll {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
+  /* .table-scroll의 overflow-x:auto 자체는 화면 폭과 무관하게 항상 적용된다(위쪽 전역
+     규칙 참고) — 여기서는 좁은 화면에서만 최소 너비를 줘서 칼럼이 지나치게 눌리지 않게 한다. */
   .table-scroll .usage-table {
     min-width: 560px;
   }
