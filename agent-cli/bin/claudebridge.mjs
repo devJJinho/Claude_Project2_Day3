@@ -30,8 +30,27 @@ async function runHookGuard() {
 }
 
 async function dispatch(argv) {
-  const [command, sub, ...rest] = argv;
-  const flags = parseFlags(rest);
+  // "hook <name>"만 두 번째 위치에 진짜 서브커맨드가 온다 — login/init/run은 두 번째 토큰부터
+  // 곧바로 플래그(--api-base-url 등)이므로, 여기서 sub를 무조건 떼어내면 그 첫 플래그를
+  // 통째로 삼켜버린다(실제로 발생했던 버그 — Day_4_Project에 처음 적용해보다 발견함,
+  // 2026-09-17). command별로 나머지 인자를 어떻게 나눌지 분기한다.
+  const [command, ...afterCommand] = argv;
+
+  if (command === "hook") {
+    const sub = afterCommand[0];
+    if (sub === "guard") return runHookGuard();
+    if (sub === "ask-question") {
+      const { runAskQuestionHookFromStdin } = await import("../src/ask-question-hook.mjs");
+      return runAskQuestionHookFromStdin(readStdinJson);
+    }
+    if (sub === "permission") {
+      const { runPermissionHookFromStdin } = await import("../src/permission-hook.mjs");
+      return runPermissionHookFromStdin(readStdinJson);
+    }
+    throw new Error(`알 수 없는 hook 서브커맨드: ${sub} (guard|ask-question|permission)`);
+  }
+
+  const flags = parseFlags(afterCommand);
 
   if (command === "login") {
     const { runLoginCommand } = await import("../src/login-command.mjs");
@@ -51,18 +70,6 @@ async function dispatch(argv) {
     const { runDaemon } = await import("../src/daemon.mjs");
     await runDaemon({ projectDir: flags["project-dir"] });
     return;
-  }
-  if (command === "hook") {
-    if (sub === "guard") return runHookGuard();
-    if (sub === "ask-question") {
-      const { runAskQuestionHookFromStdin } = await import("../src/ask-question-hook.mjs");
-      return runAskQuestionHookFromStdin(readStdinJson);
-    }
-    if (sub === "permission") {
-      const { runPermissionHookFromStdin } = await import("../src/permission-hook.mjs");
-      return runPermissionHookFromStdin(readStdinJson);
-    }
-    throw new Error(`알 수 없는 hook 서브커맨드: ${sub} (guard|ask-question|permission)`);
   }
   console.log(
     "사용법: claudebridge <login|init|run|hook <guard|ask-question|permission>>\n" +

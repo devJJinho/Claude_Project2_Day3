@@ -25,6 +25,13 @@ claudebridge login --api-base-url https://<1단계에서 배포한 Vercel 주소
 ```
 개인 액세스 토큰을 `~/.claudebridge/config.json`에 저장한다. 이 값은 Vercel 프로젝트 환경변수에서 확인한다(개발요청서.md 4장 미결 질문 — 최초에는 디바이스 코드 플로우를 검토했으나, 실제로는 공유 정적 토큰 방식으로 확정됨. `agent-cli/README.md` 참고).
 
+**여기에 더해, 셸 프로파일(`~/.zshrc` 등)에 아래 두 줄도 한 번 넣어둔다**(개발요청서.md I 항목: 서비스 롤 키는 로컬 환경변수에만 보관하고 `~/.claudebridge/config.json`에는 절대 저장하지 않는다 — 그래서 `login`이 이 값을 대신 저장해주지 않는다):
+```bash
+export SUPABASE_URL=https://<Supabase 프로젝트 ref>.supabase.co
+export SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+```
+안전 게이트 2단계(`claudebridge init`/`run`)가 이 두 값으로 Supabase 연결을 확인한다 — 없으면 "SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다"로 실패한다(2026-09-17 `docs/first-plug-and-play-trial.md`에서 실제로 겪은 순서).
+
 ### 새 프로젝트마다 1회
 ```bash
 cd <새 프로젝트 디렉터리>
