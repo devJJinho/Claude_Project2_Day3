@@ -11,10 +11,21 @@ export const LINE_LIMIT = 300;
 
 // 소스로 취급할 디렉터리 + 확장자. backlog.json(데이터), PROGRESS.md(생성물),
 // .backlog-backups/*.bak(생성물), node_modules/.next(의존성·빌드 산출물)는 의도적으로 제외한다.
-// T-001(Next.js 스캐폴드)부터 app/(App Router 라우트)·components/·lib/이 실제 애플리케이션
-// 소스다 — Next.js 라우팅 관례상 중첩 디렉터리가 필수라 check-code-length.mjs의
-// listSourceFiles()는 이 목록을 재귀적으로 순회한다(node_modules/.next 등은 내부에서 스킵).
-export const SOURCE_DIRS = [".claude/hooks", ".claude/tools", "dashboard", "app", "components", "lib"];
+// T-001(Next.js 스캐폴드)부터 app/(App Router 라우트)·components/·lib/이 웹 앱 소스,
+// agent-cli/(로컬 에이전트·전역 CLI, T-013 스캐폴드)가 에이전트 소스다 — Next.js 라우팅
+// 관례상 중첩 디렉터리가 필수라 check-code-length.mjs의 listSourceFiles()는 이 목록을
+// 재귀적으로 순회한다(node_modules/.next 등은 내부에서 스킵).
+export const SOURCE_DIRS = [
+  ".claude/hooks",
+  ".claude/tools",
+  "dashboard",
+  "app",
+  "components",
+  "lib",
+  "agent-cli/bin",
+  "agent-cli/src",
+  "agent-cli/scripts",
+];
 export const SOURCE_EXTENSIONS = [".mjs", ".js", ".ts", ".tsx"];
 
 // 재귀 스캔 시 절대 내려가지 않을 디렉터리 이름(의존성·빌드 산출물·버전관리).
