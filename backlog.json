@@ -186,12 +186,12 @@
       "title": "Supabase responses 테이블 폴링 로직 작성 (수초~10초 간격)",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-007",
         "T-014"
       ],
-      "note": "코드 구현 완료: agent-cli/src/responses-poller.mjs(fetchUnconsumedResponses/markResponseConsumed/startResponsePolling — at-least-once 처리, 5초 기본 간격). deps 중 T-007(responses 테이블 스키마, web-app 트랙)·T-014(blocked)가 미완료라 doing/done 전환 불가. 실제 Supabase 프로젝트 자체도 아직 없음(T-003 needs_info)."
+      "note": "코드 구현 완료: agent-cli/src/responses-poller.mjs(fetchUnconsumedResponses/markResponseConsumed/startResponsePolling — at-least-once 처리, 5초 기본 간격). deps 중 T-007(responses 테이블 스키마, web-app 트랙)·T-014(blocked)가 미완료라 doing/done 전환 불가. 실제 Supabase 프로젝트 자체도 아직 없음(T-003 needs_info). | 완료 근거: web-app T-007(responses 스키마) done 확인. agent-cli/src/responses-poller.mjs를 실제 스키마(consumed 컬럼 없음)에 맞게 재작성 — poll-state.mjs 로컬 워터마크(lastPolledAt)로 처리 여부 관리, event_id로 blocked_events 재조회해 type/payload 획득. scripts/integration-test-mock-backend.mjs로 fetchNewResponses가 목 서버에서 실제 새 응답 1건을 정확히 조회함을 실측 확인. 5초 기본 간격 폴링 루프(startResponsePolling)는 setTimeout 재귀 구조로 코드 검토 완료."
     },
     {
       "id": "T-019",
