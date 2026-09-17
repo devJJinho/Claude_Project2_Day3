@@ -62,28 +62,30 @@ export default async function BacklogPage() {
                 ))}
               </div>
 
-              <table className="usage-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>상태</th>
-                    <th>카테고리</th>
-                    <th>제목</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {b.tasks.map((t) => (
-                    <tr key={t.id}>
-                      <td>{t.id}</td>
-                      <td>
-                        <span className={`status-pill status-pill--${t.status}`}>{STATUS_LABEL[t.status] ?? t.status}</span>
-                      </td>
-                      <td>{t.category}</td>
-                      <td>{t.title}</td>
+              <div className="table-scroll">
+                <table className="usage-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>상태</th>
+                      <th>카테고리</th>
+                      <th>제목</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {b.tasks.map((t) => (
+                      <tr key={t.id}>
+                        <td>{t.id}</td>
+                        <td>
+                          <span className={`status-pill status-pill--${t.status}`}>{STATUS_LABEL[t.status] ?? t.status}</span>
+                        </td>
+                        <td>{t.category}</td>
+                        <td>{t.title}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           );
         })

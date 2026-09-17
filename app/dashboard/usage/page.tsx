@@ -29,30 +29,32 @@ export default async function UsagePage() {
             아직 동기화된 값이 없습니다. <code>claudebridge run</code>이 실행 중이고, 세션이 유휴 상태일 때(생성 중이거나 입력 중이 아닐 때)까지 기다리면 최대 5분 내로 채워집니다.
           </p>
         ) : (
-          <table className="usage-table">
-            <thead>
-              <tr>
-                <th>프로젝트</th>
-                <th>이번 세션</th>
-                <th>이번 주(전체 모델)</th>
-                <th>마지막 확인</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quotas.map((q) => (
-                <tr key={q.projectId}>
-                  <td>{q.name}</td>
-                  <td>
-                    {q.sessionPercentUsed}% used · Resets {q.sessionResetsAt}
-                  </td>
-                  <td>
-                    {q.weekPercentUsed}% used · Resets {q.weekResetsAt}
-                  </td>
-                  <td>{new Date(q.updatedAt).toLocaleString("ko-KR")}</td>
+          <div className="table-scroll">
+            <table className="usage-table">
+              <thead>
+                <tr>
+                  <th>프로젝트</th>
+                  <th>이번 세션</th>
+                  <th>이번 주(전체 모델)</th>
+                  <th>마지막 확인</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {quotas.map((q) => (
+                  <tr key={q.projectId}>
+                    <td>{q.name}</td>
+                    <td>
+                      {q.sessionPercentUsed}% used · Resets {q.sessionResetsAt}
+                    </td>
+                    <td>
+                      {q.weekPercentUsed}% used · Resets {q.weekResetsAt}
+                    </td>
+                    <td>{new Date(q.updatedAt).toLocaleString("ko-KR")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -63,24 +65,26 @@ export default async function UsagePage() {
             아직 기록된 사용량이 없습니다. 로컬 세션 로그 위치/포맷 조사(T-029)가 끝나야 로컬 에이전트가 이 값을 채웁니다.
           </p>
         ) : (
-          <table className="usage-table">
-            <thead>
-              <tr>
-                <th>프로젝트</th>
-                <th>입력 토큰</th>
-                <th>출력 토큰</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usage.byProject.map((p) => (
-                <tr key={p.projectId}>
-                  <td>{p.name}</td>
-                  <td>{p.inputTokens.toLocaleString("ko-KR")}</td>
-                  <td>{p.outputTokens.toLocaleString("ko-KR")}</td>
+          <div className="table-scroll">
+            <table className="usage-table">
+              <thead>
+                <tr>
+                  <th>프로젝트</th>
+                  <th>입력 토큰</th>
+                  <th>출력 토큰</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {usage.byProject.map((p) => (
+                  <tr key={p.projectId}>
+                    <td>{p.name}</td>
+                    <td>{p.inputTokens.toLocaleString("ko-KR")}</td>
+                    <td>{p.outputTokens.toLocaleString("ko-KR")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

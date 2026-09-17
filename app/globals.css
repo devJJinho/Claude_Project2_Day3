@@ -180,6 +180,12 @@ code {
   gap: 14px;
 }
 
+/* 모바일 전용 계정 정보 바(components/layout/Sidebar.tsx의 MobileAccountBar) — 데스크톱
+   폭에서는 사이드바 안의 --desktop 버전만 보이도록 기본값으로 숨겨둔다. */
+.sidebar-footer--mobile {
+  display: none;
+}
+
 .project-switch {
   opacity: 0.55;
   cursor: not-allowed;
@@ -608,10 +614,21 @@ code {
     flex-wrap: wrap;
   }
 
-  .sidebar-footer {
-    margin-top: 0;
+  /* 사용자 요청(2026-09-18): 프로젝트 전환/계정 정보가 모바일에서 nav와 함께 맨 위에
+     몰려 있던 것을 하단(MobileAccountBar, app-main 다음의 형제 요소)으로 옮긴다 — 사이드바
+     안의 --desktop 버전은 숨긴다. */
+  .sidebar-footer--desktop {
+    display: none;
+  }
+
+  .sidebar-footer--mobile {
+    display: flex;
     flex-direction: row;
-    margin-left: auto;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 14px;
   }
 
   .app-main {
@@ -621,6 +638,17 @@ code {
   .stat-grid,
   .panel-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* 사용자 요청(2026-09-18): 표가 좁은 화면에서 셀 내용이 줄바꿈되던 것을 막고, 대신
+     테이블 전체를 가로 스크롤하게 한다(.table-scroll, 각 테이블을 감싸는 래퍼). */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-scroll .usage-table {
+    min-width: 560px;
   }
 }
 
