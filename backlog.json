@@ -234,12 +234,12 @@
       "title": "선택지 텍스트→키 입력 매핑 규칙 정의 및 임의 텍스트 주입 차단 검증",
       "category": "security",
       "source_section": "I",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-020",
         "T-021"
       ],
-      "note": "코드 구현 및 단위 테스트 완료: agent-cli/src/key-mapping.mjs — AskUserQuestion 응답은 1~9 정수만, Permission은 allow_once/allow_always/deny 3개 값만 허용, 그 외(문자열·범위 밖 정수 등)는 UnrecognizedResponseError로 거부. scripts/smoke-test.mjs 4건으로 화이트리스트 통과/거부 모두 실측 확인(임의 텍스트 주입 경로 없음을 코드·테스트로 증명). dep T-020/T-021이 blocked라 doing/done 전환만 보류."
+      "note": "코드 구현 및 단위 테스트 완료: agent-cli/src/key-mapping.mjs — AskUserQuestion 응답은 1~9 정수만, Permission은 allow_once/allow_always/deny 3개 값만 허용, 그 외(문자열·범위 밖 정수 등)는 UnrecognizedResponseError로 거부. scripts/smoke-test.mjs 4건으로 화이트리스트 통과/거부 모두 실측 확인(임의 텍스트 주입 경로 없음을 코드·테스트로 증명). dep T-020/T-021이 blocked라 doing/done 전환만 보류. | 완료 근거: dep T-020/T-021 done으로 재개. key-mapping.mjs를 web-app 실제 검증 로직(lib/db/responses.ts assertValidChoice — ask_user_question은 payload.options 중 하나, permission은 approve|deny)과 정합성 확인 후 최종화. scripts/smoke-test.mjs 7건(AskUserQuestion 유효/범위밖/자유텍스트 거부, Permission approve/deny 및 잘못된 값 거부, response-resolver 3건)과 scripts/integration-test-mock-backend.mjs(실제 choice 문자열 'to optionIndex' 계산)로 화이트리스트가 실제 파이프라인 전 구간에서 임의 텍스트를 차단함을 검증."
     },
     {
       "id": "T-023",
