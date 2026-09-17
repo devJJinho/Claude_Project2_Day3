@@ -177,11 +177,12 @@
       "title": "Supabase responses 테이블 폴링 로직 작성 (수초~10초 간격)",
       "category": "agent",
       "source_section": "A",
-      "status": "todo",
+      "status": "blocked",
       "deps": [
         "T-007",
         "T-014"
-      ]
+      ],
+      "note": "코드 구현 완료: agent-cli/src/responses-poller.mjs(fetchUnconsumedResponses/markResponseConsumed/startResponsePolling — at-least-once 처리, 5초 기본 간격). deps 중 T-007(responses 테이블 스키마, web-app 트랙)·T-014(blocked)가 미완료라 doing/done 전환 불가. 실제 Supabase 프로젝트 자체도 아직 없음(T-003 needs_info)."
     },
     {
       "id": "T-019",
