@@ -36,8 +36,7 @@
       "source_section": "I",
       "status": "todo",
       "deps": [
-        "T-001",
-        "T-003"
+        "T-001"
       ]
     },
     {
@@ -45,10 +44,7 @@
       "title": "Supabase projects 테이블 스키마 작성 (project_id 기반 확장 고려)",
       "category": "backend",
       "source_section": "G",
-      "status": "todo",
-      "deps": [
-        "T-003"
-      ]
+      "status": "todo"
     },
     {
       "id": "T-006",
@@ -107,8 +103,7 @@
       "source_section": "C",
       "status": "todo",
       "deps": [
-        "T-001",
-        "T-010"
+        "T-001"
       ]
     },
     {
