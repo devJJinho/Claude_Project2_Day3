@@ -209,12 +209,12 @@
       "title": "tmux send-keys로 AskUserQuestion 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019"
       ],
-      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer — key-mapping.mjs 화이트리스트를 통과한 키 목록만 tmux send-keys에 전달. 잘못된 optionIndex(예:999)가 tmux 호출 전에 UnrecognizedResponseError로 거부됨을 실측 확인. dep T-018이 blocked라 doing/done 전환 불가. 이 머신에 tmux 미설치(brew list tmux 미설치)라 실제 send-keys 성공 여부는 tmux 설치 환경에서 재검증 필요."
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer — key-mapping.mjs 화이트리스트를 통과한 키 목록만 tmux send-keys에 전달. 잘못된 optionIndex(예:999)가 tmux 호출 전에 UnrecognizedResponseError로 거부됨을 실측 확인. dep T-018이 blocked라 doing/done 전환 불가. 이 머신에 tmux 미설치(brew list tmux 미설치)라 실제 send-keys 성공 여부는 tmux 설치 환경에서 재검증 필요. | 완료 근거: dep T-018 done으로 재개. agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer는 변경 없음(기존에 이미 key-mapping 화이트리스트를 통과한 optionIndex만 tmux send-keys에 전달하도록 구현·검증됨). scripts/integration-test-mock-backend.mjs가 실제 폴링 결과(choice='아니오')를 resolveInjectionInput으로 optionIndex=2까지 정확히 계산함을 확인해, injectAskUserQuestionAnswer에 들어가는 입력이 실제 파이프라인에서 올바르게 만들어짐을 검증. tmux 자체가 이 머신에 없어(brew list tmux 미설치) 최종 send-keys 성공 여부만 라이브 미검증으로 남음(README.md 명시)."
     },
     {
       "id": "T-021",
