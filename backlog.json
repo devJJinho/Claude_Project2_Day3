@@ -520,11 +520,12 @@
       "title": "부팅 시퀀스에 안전 게이트 순서 강제 적용 (1단계 위험 명령어 차단 검증 통과 후에만 2단계 웹 접근 점검 진행, 매 재시작마다 재검증)",
       "category": "agent",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-045",
         "T-047"
-      ]
+      ],
+      "note": "완료 근거: dep T-045/T-047 모두 done. agent-cli/src/boot-sequence.mjs가 1단계(checkStage1GuardActive→실패시 ensureStage1GuardOrInstall) 통과 후에만 2단계(checkStage2WebAccess)를 호출하는 구조(코드상 2단계 함수 참조 자체가 1단계 통과 분기 안에만 있음)를 실제로 실행해 확인: 훅 없는 임시 프로젝트에 대해 1단계 자동설치→통과 후 2단계(tmux/Supabase)까지 순서대로 진행되고, 각 단계 실패 사유가 정확히 보고됨을 실측(2026-09-17, formatBootSequenceReport 출력 확인). daemon.mjs가 기동 시 이 함수를 항상 재호출하도록 되어 있어 '재시작마다 재검증' 요구도 코드 구조로 보장됨."
     }
   ]
 }
