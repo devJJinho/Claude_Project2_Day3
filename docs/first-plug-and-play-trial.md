@@ -95,5 +95,14 @@ export SUPABASE_SERVICE_ROLE_KEY=...
 
 ## 후속 작업
 
-- [ ] README.md "1. 최초 배포" 또는 "2. 새 프로젝트에 적용하기 — 머신당 1회"에 `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` 셸 프로파일 export 단계 추가
-- [ ] `Day_4_Project`에 남겨둔 tmux 세션(`claudebridge-clb_899dd247a17148dcbc99`)을 계속 켜둘지, `claudebridge run` 데몬을 실제로 띄워서 대시보드에서 실시간 승인까지 끝까지 테스트해볼지는 사용자 확인 후 진행
+- [x] README.md "2. 새 프로젝트에 적용하기 — 머신당 1회"에 `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` 셸 프로파일 export 단계 추가 완료
+- [x] `claudebridge run` 데몬 실제 기동 완료 — 진행 중 pane 프로세스 감지 버그(pane_current_command가 "claude"/"node"가 아니라 버전 문자열로 나옴)도 발견해 수정
+
+## 추가 발견 및 기능 확장 (데몬 기동 이후)
+
+데몬을 실제로 띄운 뒤 사용자가 `Day_4_Project`에서 직접 개발을 시작하면서 두 가지 실제 요청이 들어왔고, 둘 다 바로 이 실전 적용 과정에서 드러난 진짜 갭이었다:
+
+1. **"backlog.json 내용이 웹에서 안 보인다"**: 개발요청서.md 원문(1장)은 "웹에서 백로그/진행률 확인"을 요구했는데, T-024 구현 당시 실제로는 `blocked_events` 이벤트 카운트로 대체 구현되어 있었다(스코프 누락). → `project_backlog_snapshot` 테이블 신설, 로컬 에이전트가 30초 주기로 대상 프로젝트의 backlog.json을 그대로 동기화, `/dashboard/backlog` 페이지 신설. 실제로 `Day_4_Project`의 50개 태스크가 대시보드에 그대로 뜨는 것까지 확인.
+2. **"토큰 사용량을 /status 잔여량으로"**: 기존 입력/출력 토큰 집계(T-028)는 유지하면서, tmux로 실제 Claude Code에 `/status`를 띄워 "이번 세션 %/이번 주 %" 잔여량을 긁어오는 기능 추가(`usage_quota` 테이블). 이 스크래핑은 사용자가 실제로 쓰는 pane에 개입하므로, 생성 중이거나 입력 중이면 건너뛰는 안전장치를 넣었다 — 실제로 사용자가 세션을 쓰는 동안 데몬을 재기동했더니 이 안전장치가 정확히 발동해 건너뛰는 것을 실측 확인했다.
+
+두 기능 모두 Supabase 마이그레이션 적용 → 코드 작성(`npm run verify` + `smoke-test.mjs` 14건 전체 통과, 실제 `next build`로도 재확인) → 커밋/푸시 → Vercel 자동 재배포(Ready) → 데몬 재기동까지 마치고, 실제 배포된 `https://claude-project2-day3.vercel.app/dashboard/backlog`·`/dashboard/usage`에서 스크린샷으로 최종 확인했다.
