@@ -221,13 +221,13 @@
       "title": "tmux send-keys로 Permission 승인/거부 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019",
         "T-046"
       ],
-      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectPermissionDecision — 호출마다 checkStage1GuardActive를 재확인해 안전 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐(개발요청서.md I 항목 핵심 요구사항). 게이트 미통과 프로젝트에 대해 실제로 예외 발생을 실측 확인. dep T-018/T-046이 blocked라 doing/done 전환 불가, tmux 미설치로 게이트 통과 시의 실제 send-keys는 미검증."
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectPermissionDecision — 호출마다 checkStage1GuardActive를 재확인해 안전 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐(개발요청서.md I 항목 핵심 요구사항). 게이트 미통과 프로젝트에 대해 실제로 예외 발생을 실측 확인. dep T-018/T-046이 blocked라 doing/done 전환 불가, tmux 미설치로 게이트 통과 시의 실제 send-keys는 미검증. | 완료 근거: dep T-018/T-046 done으로 재개. key-mapping.mjs의 PERMISSION_DECISIONS를 web-app 실제 검증값(app/api/permissions/route.ts의 z.enum(['approve','deny']))과 정확히 맞춤(allow_once/allow_always 3단계 설계 폐기). injectPermissionDecision이 호출마다 checkStage1GuardActive를 재확인해 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐을 실측 확인(개발요청서.md I 항목 핵심 요구사항). tmux 미설치로 게이트 통과 시의 실제 send-keys 성공 여부만 라이브 미검증(README 명시)."
     },
     {
       "id": "T-022",
