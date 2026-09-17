@@ -7,11 +7,14 @@ B(막힌 상황 범위), H(설치 형태), I(보안·안전 게이트) 항목을
 
 ```
 npm i -g claudebridge          # 머신당 1회
-claudebridge login             # 머신당 1회 — 개인 액세스 토큰 발급(디바이스 코드 플로우)
+claudebridge login --api-base-url https://<vercel-배포주소> --token <CLAUDEBRIDGE_REGISTRATION_TOKEN>
 cd <프로젝트 디렉터리>
 claudebridge init               # 프로젝트마다 1회
 claudebridge run                # 로컬 상주 에이전트(폴링+주입) — 별도 터미널/프로세스로 상주
 ```
+
+`--token`을 생략하면 `CLAUDEBRIDGE_REGISTRATION_TOKEN` 환경변수를 찾고, 그것도 없으면
+대화형으로 물어본다. 이 토큰 값은 web-app 배포(Vercel 프로젝트 환경변수)에서 확인한다.
 
 ## 안전 게이트 (가장 중요한 제약)
 
@@ -24,64 +27,85 @@ claudebridge run                # 로컬 상주 에이전트(폴링+주입) — 
 (`tmux-inject.mjs`의 `injectPermissionDecision`)은 호출될 때마다 1단계를 다시 확인하고,
 통과하지 못하면 아무것도 하지 않는다.
 
-## 웹 앱(다른 트랙)과의 계약 가정 — 통합 시 반드시 맞춰볼 것
+## 웹 앱(web-app 트랙)과의 실제 계약
 
-이 트랙은 web-app 트랙(별도 worktree)이 구현할 백엔드/DB를 직접 만들지 않는다. 아래는
-로컬 에이전트 코드가 "이런 형태일 것"이라고 가정하고 작성한 계약이다. 실제 구현이 다르면
-해당 파일만 고치면 되도록 계약을 한 곳(`src/schema-contract.mjs`)과 API 호출부
-(`src/login-command.mjs`, `src/init-command.mjs`)에 모아뒀다.
+이 트랙은 web-app 트랙(별도 worktree, `feature/web-app` → 이 브랜치에 merge됨, 커밋
+`189b064`)이 구현한 백엔드/DB를 직접 만들지 않는다. 초기에는 계약을 가정하고 작성했지만,
+merge 이후 `git show origin/feature/web-app:<path>`로 실제 소스(마이그레이션,
+`lib/supabase/types.ts`, `lib/db/*.ts`, `app/api/*/route.ts`)를 직접 읽어 아래 내용을
+전부 실제 구현과 대조·일치시켰다(더 이상 가정이 아니다). 단일 기준점은
+`src/schema-contract.mjs`(스키마)와 `src/init-command.mjs`/`src/login-command.mjs`(API
+호출부)에 있다.
 
-### Supabase 테이블 (`src/schema-contract.mjs`)
-- `projects`: project_id 확장 설계(G 항목)의 기준 테이블.
-- `blocked_events(id, project_id, kind, status, payload jsonb, created_at, answered_at)`
-- `responses(id, blocked_event_id, project_id, kind, value jsonb, consumed bool, created_at)`
-- `usage_logs(project_id, session_id, request_id, model, input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens, occurred_at)` — `(project_id, request_id)` 유니크 가정(upsert 사용).
-- `push_subscriptions(endpoint, keys jsonb)` — 로컬 에이전트는 읽기만 함.
+### Supabase 테이블 (실제 마이그레이션 확인 완료)
+- `projects(project_id PK "clb_"+uuid20자, name, client_ref, created_at)`
+- `blocked_events(id, project_id, type: "ask_user_question"|"permission", status: "pending"|"resolved", payload jsonb, created_at, resolved_at)`
+  - `payload`: ask_user_question → `{question, options: string[]}` / permission → `{tool, command, description?}`
+- `responses(id, event_id, project_id, choice: string, responded_by, created_at)` — **consumed 같은 처리 플래그 컬럼이 없다.** 로컬 에이전트는 `poll-state.mjs`의 로컬 워터마크(`lastPolledAt`)로 "새 응답"을 구분한다. `blocked_events.status`를 resolved로 바꾸는 것은 **web-app 쪽 책임**(`lib/db/responses.ts`)이라 로컬 에이전트는 갱신하지 않는다.
+- `usage_logs(id, project_id, session_id, model, input_tokens, output_tokens, recorded_at)` — 유니크 제약이 없어 `poll-state.mjs`의 `lastUsageSyncedAt` 워터마크로 중복 적재를 막는다.
+- `push_subscriptions(id, user_email, endpoint UNIQUE, p256dh, auth, created_at)` — 로컬 에이전트는 읽기만 함.
 
-### 백엔드 REST API
-- `POST /api/cli/device-code` → `{ device_code, verify_url, expires_in, interval }`
-- `GET /api/cli/device-code/:device_code` → `{ status: "pending" | "approved" | "expired" | "denied", token? }`
-- `POST /api/projects` (`Authorization: Bearer <personal access token>`, body `{ name, localPath }`)
-  → `{ project_id, dashboard_url }` — 같은 `localPath`로 재호출하면 기존 project_id를 멱등하게 반환한다고 가정.
+### 백엔드 REST API (`app/api/projects/route.ts` 실제 구현 확인 완료)
+- `POST /api/projects` (`Authorization: Bearer <CLAUDEBRIDGE_REGISTRATION_TOKEN>`, body `{ name: string(1~100자), client_ref?: string(1~200자) }`)
+  → 201/200 `{ project_id, name, created_at, existing }` — `client_ref`(로컬 프로젝트 절대경로의 sha256 해시 앞 40자)로 재호출하면 기존 project_id를 그대로 반환(멱등, `init` 재실행 안전).
+  → 400 `{error:"invalid_request", message}` / 401 `{error:"unauthorized"}` / 500 `{error:"internal_error", message}`
+- **개인 액세스 토큰 발급 방식**(개발요청서.md 4장 미결 질문, 최종 확정): 애초 구상했던
+  "구글 로그인에 위임하는 디바이스 코드 플로우"는 대응 백엔드 엔드포인트가 없어 채택하지
+  않았다. web-app 트랙이 실제로 구현한 방식(`lib/security/registration-token.ts`)은 정적
+  공유 비밀값(`CLAUDEBRIDGE_REGISTRATION_TOKEN`)을 Bearer 헤더로 비교하는 것이라 CLI도
+  그대로 따른다 — `claudebridge login`은 이 값을 사용자가 직접 붙여넣어 저장할 뿐이다.
+- 로컬 에이전트는 `/api/responses`, `/api/permissions` 같은 웹 API를 호출하지 않는다 —
+  Supabase `responses` 테이블을 서비스 롤 키로 직접 폴링한다(원래 설계대로, A 항목).
 
-### 로컬 환경변수(서비스 롤 키는 파일에 저장하지 않음 — I 항목)
-- `CLAUDEBRIDGE_SUPABASE_URL`, `CLAUDEBRIDGE_SUPABASE_SERVICE_ROLE_KEY`
-- `CLAUDEBRIDGE_VAPID_PUBLIC_KEY`, `CLAUDEBRIDGE_VAPID_PRIVATE_KEY`, `CLAUDEBRIDGE_VAPID_SUBJECT`
-- `CLAUDEBRIDGE_API_BASE_URL`, `CLAUDEBRIDGE_DASHBOARD_URL` (login 시 `~/.claudebridge/config.json`에도 저장)
+### 로컬 환경변수(서비스 롤 키는 파일에 저장하지 않음 — I 항목, web-app `.env.example`과 이름 통일)
+- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (web-app과 동일한 이름 — `NEXT_PUBLIC_` 접두사 없음)
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — `VAPID_PUBLIC_KEY`는 web-app의 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`와 반드시 같은 키 쌍이어야 한다(`npx web-push generate-vapid-keys`로 한 번 생성해 양쪽에 나눠 넣는다).
+- `CLAUDEBRIDGE_REGISTRATION_TOKEN` (login 시 입력) — `CLAUDEBRIDGE_API_BASE_URL`, `CLAUDEBRIDGE_DASHBOARD_URL`(login 결과 `~/.claudebridge/config.json`에 저장)
 
-## 확인이 필요한 가정(라이브 Claude Code 세션으로 검증 전)
+## 실제 계약으로 검증한 내용 (목 서버 통합 테스트)
 
-이 환경에는 tmux로 Claude Code를 실제로 띄워 AskUserQuestion/Permission 프롬프트가 뜬
-화면을 캡처해 정확한 키 입력 규칙을 확인할 방법이 없었다(비대화형 백그라운드 세션). 아래는
-그래서 "합리적으로 가정하고 남긴" 부분이며, 실제 화면으로 검증되면 아래 파일만 고치면 된다:
+실제 Supabase 프로젝트가 아직 없어(`T-003` `needs_info` — web-app 트랙도 동일한 제약)
+라이브 DB로는 검증할 수 없지만, 로컬 HTTP(S) 목 서버로 "계약이 실제로 맞물리는지"는
+검증했다:
+- `scripts/integration-test-mock-backend.mjs`: blocked_events insert(T-017) → responses
+  폴링(T-018) → optionIndex 계산(T-022)까지, AskUserQuestion 경로 전체가 실제
+  `@supabase/supabase-js` HTTP 왕복으로 이어짐을 확인.
+- `scripts/integration-test-mock-push.mjs`: 실제 VAPID 키로 서명된 웹 푸시가 로컬 HTTPS
+  목 엔드포인트까지 도달함을 확인(T-033).
+- `scripts/smoke-test.mjs`: 네트워크 없이 확인 가능한 순수 로직(가드 훅, 화이트리스트,
+  로그 파싱 — 이 머신의 실제 `~/.claude/projects/**/*.jsonl`에서 198건 실측) 12건.
+- `POST /api/projects` 계약은 실제 `app/api/projects/route.ts` 로직을 그대로 재현한 목
+  서버로 신규 등록/멱등 재사용/401 실패 3가지 시나리오를 확인(T-042).
+
+## 확인이 필요한 가정(여전히 남음 — 실제 Claude Code TUI를 tmux로 붙여 검증 필요)
+
+이 환경은 비대화형 백그라운드 세션이라 tmux 위에서 실제 Claude Code를 띄워 AskUserQuestion/
+Permission 프롬프트 화면을 눈으로 확인할 방법이 없었다(이 머신에는 tmux 자체도 설치돼 있지
+않다 — `brew list tmux` 확인). 아래는 web-app과의 계약과 무관하게 **Claude Code 자체의
+동작**에 대한 가정이며, 실제 화면으로 검증되면 해당 파일만 고치면 된다:
 
 1. **AskUserQuestion tool_input 스키마** (`src/ask-question-hook.mjs`의 `extractPayload`):
    `{ questions: [{ question, header, options: [{label, description}] }] }` 형태로 가정.
    다중 질문(questions.length > 1) 동시 응답은 1차 구현 범위 밖 — 첫 질문만 처리한다.
 2. **Notification 훅으로 Permission 프롬프트를 감지할 수 있다는 가정**
-   (`src/permission-hook.mjs`): Claude Code에 AskUserQuestion처럼 Permission 전용 훅
-   이벤트가 별도로 없다고 보고, 범용 `Notification` 훅의 메시지 텍스트에서
-   "permission"/"권한" 문구와 도구 이름을 정규식으로 추출한다.
-3. **선택지/승인 응답의 정확한 키 입력** (`src/key-mapping.mjs`): AskUserQuestion은
-   "숫자 입력 후 Enter", Permission은 "1=허용/2=항상 허용/3=거부 후 Enter"로 가정했다.
-   화이트리스트 검증 구조(모르는 값은 예외) 자체는 이 가정과 무관하게 유효하다.
-4. **tmux 세션 재사용 정책**(개발요청서.md 4장 미결 질문): `claudebridge init`은 같은
+   (`src/permission-hook.mjs`): 범용 `Notification` 훅의 메시지 텍스트에서 "permission"/
+   "권한" 문구와 도구 이름만 정규식으로 추출한다 — `command`/`description`은 Notification
+   메시지만으로는 알 수 없어 빈 값으로 남는다(알려진 한계, 파일 상단 주석 참고).
+3. **선택지/승인 응답의 정확한 키 입력** (`src/key-mapping.mjs`): AskUserQuestion은 "숫자
+   입력 후 Enter", Permission(approve/deny)은 "1=approve/2=deny 후 Enter"로 가정했다.
+   Claude Code의 실제 권한 프롬프트가 3옵션(예/항상 예/아니오)이면 deny의 위치가 다를 수
+   있다. 화이트리스트 검증 구조(모르는 값은 예외) 자체는 이 가정과 무관하게 유효하다.
+4. **tmux 세션 재사용 정책**(개발요청서.md 4장 미결 질문, 확정): `claudebridge init`은 같은
    project_id의 세션이 이미 있으면 재사용하고, 새로 만들었을 때만 Claude Code를 자동
    실행한다(`src/tmux-session.mjs`) — 중복 프로세스 실행을 피하기 위한 결정.
-5. **개인 액세스 토큰 발급 방식**(개발요청서.md 4장 미결 질문): 디바이스 코드 플로우로
-   결정(`src/login-command.mjs` 상단 주석에 근거 기술) — CLI가 OAuth를 직접 구현하지 않고
-   이미 필요한 구글 로그인(C 항목)에 위임한다.
+5. **tmux 자체가 이 개발 환경에 없다**: `tmux-session.mjs`/`tmux-inject.mjs`의 tmux 명령
+   구성(인자 배열 기반, shell 미사용)은 코드 검토·부재 감지(isTmuxAvailable 등)까지만
+   실측했고, 실제 세션 생성·send-keys 성공 여부는 tmux가 설치된 환경(사용자의 실제 macOS)
+   에서 재검증이 필요하다.
 
-## 왜 아직 `done`이 아닌 백로그 항목이 있는가
+## 완료된 작업 (T-013~T-022, T-029~T-031, T-033, T-039, T-041~T-047, 총 22건)
 
-이 트랙이 의존하는 Supabase 테이블(T-005~T-008, T-011 Google 로그인, T-032 push 구독,
-T-040 등록 API)은 다른 worktree(web-app 트랙)의 소관이며, 이 저장소에는 실제 Supabase
-프로젝트 자체도 아직 없다(T-003이 `needs_info`). 그래서 Supabase/백엔드에 직접 의존하는
-모듈(`blocked-events.mjs`, `responses-poller.mjs`, `usage-logs.mjs`, `push-sender.mjs`,
-`init-command.mjs`, `login-command.mjs`와 이들에 의존하는 훅들)은 **코드는 완성**했지만
-**실제 테이블/엔드포인트로 검증은 못했다** — 백로그에는 이 상태를 `blocked`로 정직하게
-남겼다(근거 없이 `done`으로 표시하지 않음). 네트워크·tmux 없이 검증 가능한 순수 로직
-(`guard-hook-logic.mjs`, `key-mapping.mjs`, `log-parser.mjs`, `settings-writer.mjs`,
-`safety-gate-stage1.mjs`)은 `scripts/smoke-test.mjs`로 실제로 돌려 확인했다
-(`npm run smoke-test`) — T-029는 이 머신의 실제 `~/.claude/projects/**/*.jsonl` 파일을
-읽어 179건의 실제 토큰 사용량 레코드를 뽑아내는 것까지 확인했다.
+모두 `done` 처리되었다 — web-app 트랙 merge(커밋 `189b064`) 이후 실제 계약에 맞춰
+재작성하고, 위 목 서버 통합 테스트로 검증했다. 남은 라이브 미검증 항목(tmux 실제 동작,
+Claude Code 훅 payload 정확한 필드명)은 이 파일의 "확인이 필요한 가정"에 모아뒀다 —
+실제 Supabase 프로젝트 생성(`T-003`)과 tmux 설치 후 재검증을 권장한다.

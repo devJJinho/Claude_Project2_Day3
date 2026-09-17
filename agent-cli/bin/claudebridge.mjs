@@ -35,7 +35,11 @@ async function dispatch(argv) {
 
   if (command === "login") {
     const { runLoginCommand } = await import("../src/login-command.mjs");
-    await runLoginCommand({ apiBaseUrl: flags["api-base-url"] });
+    await runLoginCommand({
+      apiBaseUrl: flags["api-base-url"],
+      dashboardUrl: flags["dashboard-url"],
+      token: flags.token,
+    });
     return;
   }
   if (command === "init") {
@@ -62,7 +66,7 @@ async function dispatch(argv) {
   }
   console.log(
     "사용법: claudebridge <login|init|run|hook <guard|ask-question|permission>>\n" +
-      "  login  --api-base-url <url>          머신당 1회 로그인\n" +
+      "  login  --api-base-url <url> [--token <t>] [--dashboard-url <u>]   머신당 1회 로그인\n" +
       "  init   [--project-dir <path>]        현재 프로젝트에 ClaudeBridge 연결\n" +
       "  run    [--project-dir <path>]        로컬 상주 에이전트 실행(폴링+주입)\n" +
       "  hook <name>                          settings.json이 내부적으로 호출(직접 실행 X)"

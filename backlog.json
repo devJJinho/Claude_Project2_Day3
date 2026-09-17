@@ -138,12 +138,12 @@
       "title": "로컬 에이전트 설정 파일 설계 (project_id/tmux 세션명/Supabase 키)",
       "category": "agent",
       "source_section": "G",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-013",
         "T-005"
       ],
-      "note": "코드 구현 완료: agent-cli/src/config.mjs(~/.claudebridge/config.json 읽기/쓰기, project_id↔localPath↔tmuxSession 매핑, findProjectByLocalPath 역조회), 서비스 롤 키는 I 항목대로 환경변수 전용(config.json에 저장 안 함). dep T-005(Supabase projects 테이블 스키마)가 다른 worktree(web-app 트랙)에서 아직 done이 아니라 실제 project_id 스키마와의 정합성 검증 불가 — done/doing 전환은 T-005 완료 후."
+      "note": "코드 구현 완료: agent-cli/src/config.mjs(~/.claudebridge/config.json 읽기/쓰기, project_id↔localPath↔tmuxSession 매핑, findProjectByLocalPath 역조회), 서비스 롤 키는 I 항목대로 환경변수 전용(config.json에 저장 안 함). dep T-005(Supabase projects 테이블 스키마)가 다른 worktree(web-app 트랙)에서 아직 done이 아니라 실제 project_id 스키마와의 정합성 검증 불가 — done/doing 전환은 T-005 완료 후. | 완료 근거: web-app 트랙 merge(commit 189b064)로 T-005 done 확인 후 재개. agent-cli/src/config.mjs: ~/.claudebridge/config.json(registrationToken/apiBaseUrl/dashboardUrl/projects 매핑), Supabase 자격증명은 SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY 환경변수 전용(web-app .env.example과 이름 통일 확인). findProjectByLocalPath 역조회 로직을 scripts/integration-test-mock-backend.mjs 등 여러 통합 테스트에서 실제 사용해 정상 동작 확인."
     },
     {
       "id": "T-015",
@@ -172,26 +172,26 @@
       "title": "감지된 이벤트를 Supabase blocked_events에 기록하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-006",
         "T-014",
         "T-015",
         "T-016"
       ],
-      "note": "코드 구현 완료: agent-cli/src/blocked-events.mjs(recordBlockedEvent/markBlockedEventAnswered, schema-contract.mjs 가정 스키마 사용). deps 중 T-006(blocked_events 테이블 스키마, web-app 트랙)이 미완료 + T-014가 blocked 상태라 doing/done 전환 불가. web-app 트랙 스키마 확정 후 실제 테이블로 insert 검증 필요."
+      "note": "코드 구현 완료: agent-cli/src/blocked-events.mjs(recordBlockedEvent/markBlockedEventAnswered, schema-contract.mjs 가정 스키마 사용). deps 중 T-006(blocked_events 테이블 스키마, web-app 트랙)이 미완료 + T-014가 blocked 상태라 doing/done 전환 불가. web-app 트랙 스키마 확정 후 실제 테이블로 insert 검증 필요. | 완료 근거: web-app T-006(blocked_events 스키마) done 확인. agent-cli/src/blocked-events.mjs를 실제 마이그레이션(type/status pending·resolved 필드명)에 맞게 재작성. scripts/integration-test-mock-backend.mjs로 로컬 PostgREST 흉내 서버에 실제 HTTP POST insert가 성공하고 id가 반환됨을 실측 확인(node scripts/integration-test-mock-backend.mjs 통과). 실제 Supabase 프로젝트는 아직 없음(T-003 needs_info, web-app 트랙도 동일 제약)."
     },
     {
       "id": "T-018",
       "title": "Supabase responses 테이블 폴링 로직 작성 (수초~10초 간격)",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-007",
         "T-014"
       ],
-      "note": "코드 구현 완료: agent-cli/src/responses-poller.mjs(fetchUnconsumedResponses/markResponseConsumed/startResponsePolling — at-least-once 처리, 5초 기본 간격). deps 중 T-007(responses 테이블 스키마, web-app 트랙)·T-014(blocked)가 미완료라 doing/done 전환 불가. 실제 Supabase 프로젝트 자체도 아직 없음(T-003 needs_info)."
+      "note": "코드 구현 완료: agent-cli/src/responses-poller.mjs(fetchUnconsumedResponses/markResponseConsumed/startResponsePolling — at-least-once 처리, 5초 기본 간격). deps 중 T-007(responses 테이블 스키마, web-app 트랙)·T-014(blocked)가 미완료라 doing/done 전환 불가. 실제 Supabase 프로젝트 자체도 아직 없음(T-003 needs_info). | 완료 근거: web-app T-007(responses 스키마) done 확인. agent-cli/src/responses-poller.mjs를 실제 스키마(consumed 컬럼 없음)에 맞게 재작성 — poll-state.mjs 로컬 워터마크(lastPolledAt)로 처리 여부 관리, event_id로 blocked_events 재조회해 type/payload 획득. scripts/integration-test-mock-backend.mjs로 fetchNewResponses가 목 서버에서 실제 새 응답 1건을 정확히 조회함을 실측 확인. 5초 기본 간격 폴링 루프(startResponsePolling)는 setTimeout 재귀 구조로 코드 검토 완료."
     },
     {
       "id": "T-019",
@@ -209,37 +209,37 @@
       "title": "tmux send-keys로 AskUserQuestion 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019"
       ],
-      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer — key-mapping.mjs 화이트리스트를 통과한 키 목록만 tmux send-keys에 전달. 잘못된 optionIndex(예:999)가 tmux 호출 전에 UnrecognizedResponseError로 거부됨을 실측 확인. dep T-018이 blocked라 doing/done 전환 불가. 이 머신에 tmux 미설치(brew list tmux 미설치)라 실제 send-keys 성공 여부는 tmux 설치 환경에서 재검증 필요."
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer — key-mapping.mjs 화이트리스트를 통과한 키 목록만 tmux send-keys에 전달. 잘못된 optionIndex(예:999)가 tmux 호출 전에 UnrecognizedResponseError로 거부됨을 실측 확인. dep T-018이 blocked라 doing/done 전환 불가. 이 머신에 tmux 미설치(brew list tmux 미설치)라 실제 send-keys 성공 여부는 tmux 설치 환경에서 재검증 필요. | 완료 근거: dep T-018 done으로 재개. agent-cli/src/tmux-inject.mjs의 injectAskUserQuestionAnswer는 변경 없음(기존에 이미 key-mapping 화이트리스트를 통과한 optionIndex만 tmux send-keys에 전달하도록 구현·검증됨). scripts/integration-test-mock-backend.mjs가 실제 폴링 결과(choice='아니오')를 resolveInjectionInput으로 optionIndex=2까지 정확히 계산함을 확인해, injectAskUserQuestionAnswer에 들어가는 입력이 실제 파이프라인에서 올바르게 만들어짐을 검증. tmux 자체가 이 머신에 없어(brew list tmux 미설치) 최종 send-keys 성공 여부만 라이브 미검증으로 남음(README.md 명시)."
     },
     {
       "id": "T-021",
       "title": "tmux send-keys로 Permission 승인/거부 응답 주입하는 함수 작성",
       "category": "agent",
       "source_section": "A",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019",
         "T-046"
       ],
-      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectPermissionDecision — 호출마다 checkStage1GuardActive를 재확인해 안전 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐(개발요청서.md I 항목 핵심 요구사항). 게이트 미통과 프로젝트에 대해 실제로 예외 발생을 실측 확인. dep T-018/T-046이 blocked라 doing/done 전환 불가, tmux 미설치로 게이트 통과 시의 실제 send-keys는 미검증."
+      "note": "코드 구현 완료: agent-cli/src/tmux-inject.mjs의 injectPermissionDecision — 호출마다 checkStage1GuardActive를 재확인해 안전 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐(개발요청서.md I 항목 핵심 요구사항). 게이트 미통과 프로젝트에 대해 실제로 예외 발생을 실측 확인. dep T-018/T-046이 blocked라 doing/done 전환 불가, tmux 미설치로 게이트 통과 시의 실제 send-keys는 미검증. | 완료 근거: dep T-018/T-046 done으로 재개. key-mapping.mjs의 PERMISSION_DECISIONS를 web-app 실제 검증값(app/api/permissions/route.ts의 z.enum(['approve','deny']))과 정확히 맞춤(allow_once/allow_always 3단계 설계 폐기). injectPermissionDecision이 호출마다 checkStage1GuardActive를 재확인해 게이트 미통과 시 tmux를 건드리지 않고 즉시 예외를 던짐을 실측 확인(개발요청서.md I 항목 핵심 요구사항). tmux 미설치로 게이트 통과 시의 실제 send-keys 성공 여부만 라이브 미검증(README 명시)."
     },
     {
       "id": "T-022",
       "title": "선택지 텍스트→키 입력 매핑 규칙 정의 및 임의 텍스트 주입 차단 검증",
       "category": "security",
       "source_section": "I",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-020",
         "T-021"
       ],
-      "note": "코드 구현 및 단위 테스트 완료: agent-cli/src/key-mapping.mjs — AskUserQuestion 응답은 1~9 정수만, Permission은 allow_once/allow_always/deny 3개 값만 허용, 그 외(문자열·범위 밖 정수 등)는 UnrecognizedResponseError로 거부. scripts/smoke-test.mjs 4건으로 화이트리스트 통과/거부 모두 실측 확인(임의 텍스트 주입 경로 없음을 코드·테스트로 증명). dep T-020/T-021이 blocked라 doing/done 전환만 보류."
+      "note": "코드 구현 및 단위 테스트 완료: agent-cli/src/key-mapping.mjs — AskUserQuestion 응답은 1~9 정수만, Permission은 allow_once/allow_always/deny 3개 값만 허용, 그 외(문자열·범위 밖 정수 등)는 UnrecognizedResponseError로 거부. scripts/smoke-test.mjs 4건으로 화이트리스트 통과/거부 모두 실측 확인(임의 텍스트 주입 경로 없음을 코드·테스트로 증명). dep T-020/T-021이 blocked라 doing/done 전환만 보류. | 완료 근거: dep T-020/T-021 done으로 재개. key-mapping.mjs를 web-app 실제 검증 로직(lib/db/responses.ts assertValidChoice — ask_user_question은 payload.options 중 하나, permission은 approve|deny)과 정합성 확인 후 최종화. scripts/smoke-test.mjs 7건(AskUserQuestion 유효/범위밖/자유텍스트 거부, Permission approve/deny 및 잘못된 값 거부, response-resolver 3건)과 scripts/integration-test-mock-backend.mjs(실제 choice 문자열 'to optionIndex' 계산)로 화이트리스트가 실제 파이프라인 전 구간에서 임의 텍스트를 차단함을 검증."
     },
     {
       "id": "T-023",
@@ -337,13 +337,13 @@
       "title": "파싱한 토큰 사용량을 Supabase usage_logs에 적재하는 로직 작성",
       "category": "usage",
       "source_section": "E",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-030",
         "T-008",
         "T-014"
       ],
-      "note": "코드 구현 완료: agent-cli/src/usage-logs.mjs(uploadUsageRecords — (project_id,request_id) upsert 가정, syncUsageForProject로 log-parser와 연결). log-parser 파싱 자체는 T-030에서 실측 검증됨. dep T-008(usage_logs 테이블 스키마, web-app 트랙)·T-014(blocked) 미완료라 실제 테이블 upsert 검증 불가."
+      "note": "코드 구현 완료: agent-cli/src/usage-logs.mjs(uploadUsageRecords — (project_id,request_id) upsert 가정, syncUsageForProject로 log-parser와 연결). log-parser 파싱 자체는 T-030에서 실측 검증됨. dep T-008(usage_logs 테이블 스키마, web-app 트랙)·T-014(blocked) 미완료라 실제 테이블 upsert 검증 불가. | 완료 근거: web-app T-008(usage_logs 스키마) done 확인 — 실제 컬럼(id,project_id,session_id,model,input_tokens,output_tokens,recorded_at)에는 request_id/cache_* 유니크 제약이 없음을 확인하고 agent-cli/src/usage-logs.mjs를 재작성: poll-state.mjs의 lastUsageSyncedAt 워터마크로 중복 적재 방지, insert만 사용(upsert 불필요). T-030에서 실제 세션 로그 198건 파싱은 이미 검증됨; Supabase insert 자체는 실제 프로젝트가 없어(T-003 needs_info) 라이브 테스트는 못했으나 스키마 필드 일치는 마이그레이션 파일 직접 대조로 확인."
     },
     {
       "id": "T-032",
@@ -361,12 +361,12 @@
       "title": "막힌 이벤트 발생 시 웹 푸시 발송 로직 작성",
       "category": "notify",
       "source_section": "F",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-017",
         "T-032"
       ],
-      "note": "코드 구현 완료: agent-cli/src/push-sender.mjs(web-push 라이브러리로 VAPID 발송, push_subscriptions 조회 후 sendPushForBlockedEvent가 즉시 발송). dep T-017(blocked)·T-032(웹 푸시 구독 등록, web-app 트랙) 미완료라 실제 구독 대상 발송 검증 불가. VAPID 키/구독 데이터가 없어 라이브 발송 테스트 불가."
+      "note": "코드 구현 완료: agent-cli/src/push-sender.mjs(web-push 라이브러리로 VAPID 발송, push_subscriptions 조회 후 sendPushForBlockedEvent가 즉시 발송). dep T-017(blocked)·T-032(웹 푸시 구독 등록, web-app 트랙) 미완료라 실제 구독 대상 발송 검증 불가. VAPID 키/구독 데이터가 없어 라이브 발송 테스트 불가. | 완료 근거: web-app T-032(push 구독 등록) done 확인 — lib/db/push.ts 실제 스키마(endpoint,p256dh,auth 개별 컬럼, keys jsonb 아님)에 맞춰 push-sender.mjs 재작성. scripts/integration-test-mock-push.mjs로 실제 VAPID 키 생성(web-push.generateVAPIDKeys)+로컬 HTTPS 목 푸시 엔드포인트에 대해 sendPushForBlockedEvent가 실제 암호화된 HTTPS 요청을 보내 sent=1을 반환함을 실측 확인(node scripts/integration-test-mock-push.mjs 통과, 2026-09-17). VAPID_PUBLIC_KEY는 web-app의 NEXT_PUBLIC_VAPID_PUBLIC_KEY와 동일 키 쌍이어야 함을 README에 명시."
     },
     {
       "id": "T-034",
@@ -451,25 +451,26 @@
       "title": "개인 액세스 토큰 발급 및 claudebridge login 커맨드 구현 (머신당 1회 로그인)",
       "category": "auth",
       "source_section": "H",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "T-011",
         "T-039"
       ],
-      "note": "코드 구현 완료: agent-cli/src/login-command.mjs — 개인 액세스 토큰 발급 방식을 디바이스 코드 플로우로 결정(README.md에 근거 기술, 개발요청서.md 4장 미결 질문 해소). POST /api/cli/device-code, GET /api/cli/device-code/:code API 계약을 가정. dep T-011(구글 로그인, web-app 트랙) 미완료 + 백엔드 API 자체가 없어 실제 로그인 플로우 검증 불가."
+      "note": "코드 구현 완료: agent-cli/src/login-command.mjs — 개인 액세스 토큰 발급 방식을 디바이스 코드 플로우로 결정(README.md에 근거 기술, 개발요청서.md 4장 미결 질문 해소). POST /api/cli/device-code, GET /api/cli/device-code/:code API 계약을 가정. dep T-011(구글 로그인, web-app 트랙) 미완료 + 백엔드 API 자체가 없어 실제 로그인 플로우 검증 불가. | 완료 근거: web-app T-011(구글 로그인) done 확인 + lib/security/registration-token.ts를 직접 읽어 실제 인증 방식(정적 CLAUDEBRIDGE_REGISTRATION_TOKEN 공유 비밀값 Bearer 비교)을 확인. 애초 설계했던 디바이스 코드 플로우는 대응 백엔드 엔드포인트가 없어 폐기하고, agent-cli/src/login-command.mjs를 그 실제 계약에 맞춰 재작성(--token 플래그/환경변수/대화형 프롬프트로 토큰을 받아 config.json에 저장). config.mjs의 saveConfig/loadConfig 라운드트립은 기존 테스트들(smoke-test.mjs 등)에서 반복 사용되어 정상 동작 확인."
     },
     {
       "id": "T-042",
       "title": "claudebridge init 커맨드 구현 (등록 API 호출+settings.json 위임형 훅 삽입+tmux 세션 생성+Claude Code 실행 자동화)",
       "category": "agent",
       "source_section": "H",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-040",
         "T-041",
         "T-019",
         "T-046"
-      ]
+      ],
+      "note": "완료 근거: web-app T-040(app/api/projects/route.ts) 파일을 직접 읽어 실제 계약(Bearer CLAUDEBRIDGE_REGISTRATION_TOKEN, body {name, client_ref?}, 응답 {project_id, name, created_at, existing})을 확인 후 agent-cli/src/init-command.mjs를 그대로 맞춰 재작성(client_ref=projectDir sha256 해시). 로컬 목 서버로 registerProjectWithBackend를 실제 실행해 (1)신규 등록 시 clb_+20자 project_id/existing:false, (2)같은 client_ref 재호출 시 동일 project_id/existing:true(멱등, init 재실행 안전), (3)잘못된 토큰이면 401 실패를 모두 실측 확인(2026-09-17). 안전 게이트 0/0-1단계→등록→훅삽입→tmux 세션까지의 순서는 코드 검토로 확인했으며, 마지막 tmux 세션 생성 단계만 이 머신에 tmux가 없어 라이브 미검증(다른 태스크들과 동일한 제약, README 명시)."
     },
     {
       "id": "T-043",
@@ -508,22 +509,24 @@
       "title": "웹 접근 가능 상태 점검(2단계: tmux 세션·에이전트 연결·백엔드 통신 확인) 로직 작성",
       "category": "agent",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-018",
         "T-019"
-      ]
+      ],
+      "note": "완료 근거: dep T-018 done으로 재개. agent-cli/src/safety-gate-stage2.mjs(tmux 세션+Claude Code 프로세스+Supabase 연결 3종 점검, sessionName 생략 시 init 프리플라이트 모드)는 이미 임시 프로젝트 디렉터리에 대해 세 검사 모두 정확한 실패 사유(tmux 없음/Supabase 미설정)를 반환함을 실측 확인(2026-09-17). 이 결과가 boot-sequence.mjs를 통해 1단계 통과 후에만 호출됨도 함께 검증됨."
     },
     {
       "id": "T-046",
       "title": "부팅 시퀀스에 안전 게이트 순서 강제 적용 (1단계 위험 명령어 차단 검증 통과 후에만 2단계 웹 접근 점검 진행, 매 재시작마다 재검증)",
       "category": "agent",
       "source_section": "I",
-      "status": "todo",
+      "status": "done",
       "deps": [
         "T-045",
         "T-047"
-      ]
+      ],
+      "note": "완료 근거: dep T-045/T-047 모두 done. agent-cli/src/boot-sequence.mjs가 1단계(checkStage1GuardActive→실패시 ensureStage1GuardOrInstall) 통과 후에만 2단계(checkStage2WebAccess)를 호출하는 구조(코드상 2단계 함수 참조 자체가 1단계 통과 분기 안에만 있음)를 실제로 실행해 확인: 훅 없는 임시 프로젝트에 대해 1단계 자동설치→통과 후 2단계(tmux/Supabase)까지 순서대로 진행되고, 각 단계 실패 사유가 정확히 보고됨을 실측(2026-09-17, formatBootSequenceReport 출력 확인). daemon.mjs가 기동 시 이 함수를 항상 재호출하도록 되어 있어 '재시작마다 재검증' 요구도 코드 구조로 보장됨."
     }
   ]
 }

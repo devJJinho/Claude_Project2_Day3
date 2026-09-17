@@ -42,7 +42,7 @@ async function checkSupabaseReachable() {
     return {
       ok: false,
       reason:
-        "CLAUDEBRIDGE_SUPABASE_URL/CLAUDEBRIDGE_SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다.",
+        "SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY 환경변수가 설정되지 않았습니다.",
     };
   }
   const controller = new AbortController();

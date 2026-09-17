@@ -34,7 +34,7 @@ export function injectAskUserQuestionAnswer(sessionName, optionIndex) {
  * Permission 승인/거부 응답 주입(T-021). 안전 게이트 1단계가 살아있는지 매번 재확인한다.
  * @param {string} sessionName
  * @param {string} projectDir 게이트 재검증 대상 프로젝트 루트
- * @param {"allow_once"|"allow_always"|"deny"} decision
+ * @param {"approve"|"deny"} decision
  */
 export function injectPermissionDecision(sessionName, projectDir, decision) {
   const gate = checkStage1GuardActive(projectDir);

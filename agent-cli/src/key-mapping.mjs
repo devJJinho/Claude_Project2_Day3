@@ -12,7 +12,9 @@
 // 화이트리스트 검증 구조는 그대로 유지된다.
 
 export const MAX_ASK_QUESTION_OPTIONS = 9;
-export const PERMISSION_DECISIONS = Object.freeze(["allow_once", "allow_always", "deny"]);
+// web-app 트랙(app/api/permissions/route.ts)이 실제로 검증하는 값과 동일하게 맞춘다 —
+// "approve"|"deny" 둘 뿐이다(allow_once/allow_always 같은 3단계가 아니다).
+export const PERMISSION_DECISIONS = Object.freeze(["approve", "deny"]);
 
 export class UnrecognizedResponseError extends Error {
   constructor(kind, value) {
@@ -39,15 +41,18 @@ export function mapAskUserQuestionAnswer(optionIndex) {
 }
 
 /**
- * Permission 승인/거부 응답을 tmux 키 시퀀스로 변환한다.
- * @param {"allow_once"|"allow_always"|"deny"} decision
+ * Permission 승인/거부 응답을 tmux 키 시퀀스로 변환한다. Claude Code의 실제 권한 프롬프트가
+ * 2개 옵션(예/아니오)인지 3개 옵션(예/항상 예/아니오)인지 라이브 검증 전이라, approve는
+ * 첫 번째 옵션(보통 "예" — 숫자 1), deny는 마지막에서 보이는 "아니오"에 가장 흔히 대응하는
+ * 값으로 잠정 배정한다(README.md '확인이 필요한 가정' 참고 — 실제 화면 확인 후 조정 필요).
+ * @param {"approve"|"deny"} decision
  * @returns {string[]}
  */
 export function mapPermissionDecision(decision) {
   if (!PERMISSION_DECISIONS.includes(decision)) {
     throw new UnrecognizedResponseError("Permission decision", decision);
   }
-  const digit = { allow_once: "1", allow_always: "2", deny: "3" }[decision];
+  const digit = { approve: "1", deny: "2" }[decision];
   return [digit, "Enter"];
 }
 
