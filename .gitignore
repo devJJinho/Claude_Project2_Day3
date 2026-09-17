@@ -1,0 +1,17 @@
+node_modules/
+.backlog-backups/
+.claude/skills/find-skills
+.claude/.checkpoint-state.json
+.vscode/
+
+# Next.js
+.next/
+out/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# local agent CLI build output
+agent-cli/dist/

@@ -1,0 +1,114 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-progress-md.mjs",
+            "statusMessage": "Checking PROGRESS.md protection"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-dangerous-commands.mjs",
+            "statusMessage": "Checking for destructive/irreversible commands"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Grep|Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/require-backlog-cli.mjs",
+            "statusMessage": "Checking backlog.json direct read/write guard"
+          }
+        ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notify-say-question.mjs",
+            "statusMessage": "Voice notice: user decision needed",
+            "async": true,
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/check-backlog-integrity.mjs",
+            "statusMessage": "Validating backlog.json integrity"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/quick-quality-check.mjs",
+            "statusMessage": "Checking code length + lint on edited file",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notify-say.mjs",
+            "statusMessage": "Checking for task-completion / needs-info voice notification",
+            "async": true,
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/notify-say-error.mjs",
+            "statusMessage": "Voice notice: tool error",
+            "async": true,
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/update-progress.mjs 2>/dev/null || true",
+            "statusMessage": "Updating PROGRESS.md from backlog.json"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/full-quality-check.mjs",
+            "statusMessage": "Running full code-length + lint + build verification",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/auto-checkpoint.mjs",
+            "statusMessage": "Periodic auto-commit/push checkpoint",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
