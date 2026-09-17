@@ -1,10 +1,11 @@
-// Supabase 테이블 계약(가정) — 웹/백엔드 트랙(다른 worktree, T-005~T-011)이 실제로 구현할
-// 스키마와 이 로컬 에이전트가 주고받을 최소 계약을 여기 한 곳에 문서화한다. 실제 마이그레이션
-// 파일은 이 트랙 소관이 아니라 만들지 않는다 — 이 파일은 "내가 가정하고 코드를 짠 형태"의
-// 단일 기준점이며, 나중에 두 트랙을 합칠 때 다르면 이 파일 하나만 보고 맞추면 되게 하기 위함.
+// Supabase 테이블 계약 — web-app 트랙(다른 worktree, feature/web-app 브랜치)이 실제로
+// 구현한 스키마를 그대로 반영한다(더 이상 가정이 아니라 확인된 사실).
 //
-// project_id 확장 설계(개발요청서.md G 항목)를 지키기 위해 blocked_events/responses/
-// usage_logs 모두 project_id를 포함한다고 가정한다.
+// 출처: origin/feature/web-app 커밋 c092c82(2026-09-17, "ClaudeBridge 웹 앱 스캐폴드 +
+// 인증/DB/대시보드/API 구현")의 lib/supabase/types.ts, supabase/migrations/2026091700{01~06}00_*.sql,
+// lib/db/{projects,events,responses,push}.ts, app/api/{projects,responses,permissions}/route.ts를
+// `git show origin/feature/web-app:<path>`로 직접 읽어 확인했다(해당 worktree 디렉터리로
+// 들어가거나 그 안의 파일을 수정하지 않고, git 오브젝트만 읽기 전용으로 조회).
 
 export const TABLES = Object.freeze({
   PROJECTS: "projects",
@@ -14,38 +15,32 @@ export const TABLES = Object.freeze({
   PUSH_SUBSCRIPTIONS: "push_subscriptions",
 });
 
+// projects: { project_id (PK, "clb_"+uuid20자, POST /api/projects가 발급), name, client_ref, created_at }
+
 // blocked_events: Claude Code가 AskUserQuestion/Permission으로 멈춘 시점을 기록.
 //   id: uuid (PK)
-//   project_id: uuid (FK -> projects.id)
-//   kind: "ask_user_question" | "permission"
-//   status: "pending" | "answered"
+//   project_id: text (FK -> projects.project_id)
+//   type: "ask_user_question" | "permission"   ← 필드명은 kind가 아니라 type
+//   status: "pending" | "resolved"              ← "answered"가 아니라 "resolved"
 //   payload: jsonb
-//     - ask_user_question: { question: string, header?: string, options: [{ index:number, label:string }] }
-//     - permission: { toolName: string, message: string }
-//   created_at: timestamptz
-//   answered_at: timestamptz | null
+//     - ask_user_question: { question: string, options: string[] }  ← 옵션은 문자열 배열 그대로
+//     - permission: { tool: string, command: string, description?: string }
+//   created_at, resolved_at
 
-// responses: 사용자가 웹에서 고른 응답. 웹 앱이 INSERT하고, 로컬 에이전트가 폴링해 소비 후
-// consumed=true로 UPDATE한다(T-018).
-//   id: uuid (PK)
-//   blocked_event_id: uuid (FK -> blocked_events.id)
-//   project_id: uuid (FK -> projects.id) — 프로젝트별 폴링 필터링용
-//   kind: "ask_user_question" | "permission"
-//   value: jsonb
-//     - ask_user_question: { optionIndex: number }   (1부터 시작, key-mapping.mjs와 동일 규칙)
-//     - permission: { decision: "allow_once"|"allow_always"|"deny" }
-//   consumed: boolean (기본 false)
-//   created_at: timestamptz
+// responses: 사용자가 웹에서 고른 응답. app/api/responses·app/api/permissions가 INSERT하면서
+// 동시에 해당 blocked_events.status를 resolved로 바꾼다 — **로컬 에이전트는 이 갱신을 하지
+// 않는다**(웹 쪽 책임). consumed 같은 별도 플래그 컬럼은 없다 — 로컬 에이전트는 자체적으로
+// created_at 워터마크를 로컬에 저장해 "새 응답"을 구분한다(poll-state.mjs).
+//   id, event_id (blocked_events.id), project_id, choice (string), responded_by (email), created_at
+//   choice 값: ask_user_question이면 해당 이벤트 payload.options 중 하나(문자열 그대로),
+//              permission이면 "approve" | "deny" 둘 중 하나. (웹 API가 이미 검증해서 넣으므로
+//              로컬 에이전트는 신뢰하되, optionIndex 계산 실패 등 방어적 처리는 한다.)
 
-// usage_logs: T-030이 파싱한 토큰 사용량 레코드 하나당 한 행.
-//   id: uuid (PK), project_id: uuid, session_id, request_id, model,
-//   input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens,
-//   occurred_at: timestamptz (jsonl의 timestamp), created_at: timestamptz (적재 시각)
-//   유니크 제약 가정: (project_id, request_id) — 같은 요청을 중복 적재하지 않기 위해
-//   upsert(onConflict: "project_id,request_id")를 사용한다.
+// usage_logs: { id, project_id, session_id, model, input_tokens, output_tokens, recorded_at }
+//   주의: cache_creation_input_tokens/cache_read_input_tokens 컬럼은 실제 마이그레이션에는
+//   없다(log-parser.mjs는 참고용으로 계속 뽑아두되, upload 시에는 실제 컬럼만 보낸다).
 
-// push_subscriptions: 웹 대시보드가 Service Worker 구독을 등록해 저장(T-032, 다른 트랙 소관).
-//   id, endpoint, keys jsonb ({p256dh, auth}), created_at.
+// push_subscriptions: { id, user_email, endpoint (unique), p256dh, auth, created_at }
 //   로컬 에이전트(T-033)는 이 테이블을 읽기만 한다.
 
 export function assertKnownTable(name) {
